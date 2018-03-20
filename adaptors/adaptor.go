@@ -18,6 +18,6 @@ package adaptors
 
 type Adaptor interface {
 	New() Adaptor
-	GetKeys(jwkUri string) map[int]interface{}
-	Decode(jwt string, keys map[string]interface{})
+	GetKey(jwkUri string)
+	Decode(jwt string, jwkUri string) (interface{}, error)
 }

@@ -14,36 +14,42 @@
  * limitations under the License.
  ******************************************************************************/
 
-package squareGoJose
+package lestrratGoJwx
 
 import (
-	"net/http"
-	"log"
-	"encoding/json"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
+	"github.com/lestrrat-go/jwx/jwk"
+	"log"
+	"github.com/lestrrat-go/jwx/jws"
+	"encoding/json"
 )
 
-type SquareGoJose struct {}
-
-func (sqj *SquareGoJose) New() adaptors.Adaptor {
-	return sqj
+type LestrratGoJwx struct {
+	JWKSet jwk.Set
 }
 
-func (sqj *SquareGoJose) GetKeys(jwkUri string) map[int]interface{} {
-	resp, err := http.Get(jwkUri)
+func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
+	return lgj
+}
+
+func (lgj *LestrratGoJwx) GetKey(jwkUri string) {
+	log.Printf("Do not need to get key")
+	return
+}
+
+func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
+
+	token, err := jws.VerifyWithJKU([]byte(jwt), jwkUri)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("could not verify with JKU: %e", err)
+		return nil, err
 	}
 
-	defer resp.Body.Close()
+	var claims interface{}
 
-	keys := make(map[int]interface{})
-	json.NewDecoder(resp.Body).Decode(&keys)
+	json.Unmarshal(token, &claims)
 
-	return keys
-}
-
-func (sqj *SquareGoJose) Decode(jwt string, keys map[string]interface{}) {
+	return claims, nil
 
 }
