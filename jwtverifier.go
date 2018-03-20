@@ -24,7 +24,7 @@ import (
 	"log"
 	"encoding/json"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
-	"github.com/okta/okta-jwt-verifier-golang/adaptors/squareGoJose"
+	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 )
 
 type JwtVerifier struct {
@@ -32,40 +32,101 @@ type JwtVerifier struct {
 
 	ClientId string
 
-	Audience string
-
-	Nonce string
+	ClaimsToValidate map[string]string
 
 	Discovery discovery.Discovery
 
 	Adaptor adaptors.Adaptor
 }
 
-type Jwt struct {}
+type Jwt struct {
+	Claims map[string]interface{}
+}
 
 
 func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
 	// Default to OIDC discovery if none is defined
 	if j.Discovery == nil {
-		discovery := oidc.Oidc{}
-		j.Discovery = discovery.New()
+		disc := oidc.Oidc{}
+		j.Discovery = disc.New()
 	}
 
-	// Default to SquareGoJose Adaptor if none is defined
+	// Default to LestrratGoJwx Adaptor if none is defined
 	if j.Adaptor == nil {
-		adaptor := squareGoJose.SquareGoJose{}
+		adaptor := lestrratGoJwx.LestrratGoJwx{}
 		j.Adaptor = adaptor.New()
 	}
 
 	if jwt == "" {
-		return nil, fmt.Errorf("JWT could not be verified.  The error returned was: %s", "")
+		return nil, fmt.Errorf("a valid jwt must be provided: %s", jwt)
 	}
 
 	metaData := j.getMetaData()
 
+	resp, err := j.Adaptor.Decode(jwt, metaData["jwks_uri"].(string))
 
+	if err != nil {
+		return nil, fmt.Errorf("could not decode token: %s", err)
+	}
+	token := resp.(map[string]interface{})
 
-	return &Jwt{}, nil
+	myJwt := Jwt{
+		Claims: token,
+	}
+
+	err = j.validateClaims(token)
+
+	if err != nil {
+		return &myJwt, fmt.Errorf("could not validate all claims: %s", err)
+	}
+
+	return &myJwt, nil
+}
+
+func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
+	err := j.validateNonce(claims["nonce"])
+	err = j.validateAudience(claims["aud"])
+	err = j.validateClientId(claims["cid"])
+
+	if err != nil {
+		return fmt.Errorf("validation of claims failed: %s", err)
+	}
+
+	return nil
+}
+
+func (j *JwtVerifier) validateNonce(nonce interface{}) error {
+	if j.ClaimsToValidate["nonce"] == "" {
+		log.Println("No nonce was provided to validate against.")
+		return nil
+	}
+	if nonce != j.ClaimsToValidate["nonce"] {
+		return fmt.Errorf("nonce: %s does not match %s", nonce, j.ClaimsToValidate["nonce"])
+	}
+	return nil
+}
+
+func (j *JwtVerifier) validateAudience(audience interface{}) error {
+	if j.ClaimsToValidate["aud"] == "" {
+		log.Println("No audience was provided to validate against.")
+		return nil
+	}
+	if audience != j.ClaimsToValidate["audience"] {
+		return fmt.Errorf("audience: %s does not match %s", audience, j.ClaimsToValidate["audience"])
+	}
+	return nil
+}
+
+func (j *JwtVerifier) validateClientId(clientId interface{}) error {
+	if j.ClaimsToValidate["cid"] == "" {
+		log.Println("No audience was provided to validate against.")
+		return nil
+	}
+
+	if clientId != j.ClaimsToValidate["cid"] {
+		return fmt.Errorf("clientId: %s does not match %s", clientId, j.ClaimsToValidate["cid"])
+	}
+	return nil
 }
 
 func (j *JwtVerifier) getMetaData() map[string]interface{} {
