@@ -14,42 +14,18 @@
  * limitations under the License.
  ******************************************************************************/
 
-package lestrratGoJwx
+package errors
 
-import (
-	"github.com/okta/okta-jwt-verifier-golang/adaptors"
-	"github.com/lestrrat-go/jwx/jwk"
-	"log"
-	"github.com/lestrrat-go/jwx/jws"
-	"encoding/json"
-)
-
-type LestrratGoJwx struct {
-	JWKSet jwk.Set
+type JwtEmptyString struct {
+	message string
 }
 
-func (lgj LestrratGoJwx) New() adaptors.Adaptor {
-	return lgj
-}
-
-func (lgj LestrratGoJwx) GetKey(jwkUri string) {
-	log.Printf("Do not need to get key")
-	return
-}
-
-func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
-
-	token, err := jws.VerifyWithJKU([]byte(jwt), jwkUri)
-
-	if err != nil {
-		log.Printf("could not verify with JKU: %e", err)
-		return nil, err
+func JwtEmptyStringError() *JwtEmptyString {
+	return &JwtEmptyString{
+		message: "you must provide a jwt to verify",
 	}
+}
 
-	var claims interface{}
-
-	json.Unmarshal(token, &claims)
-
-	return claims, nil
-
+func (e *JwtEmptyString) Error() string {
+	return e.message
 }

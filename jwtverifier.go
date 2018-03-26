@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/okta/okta-jwt-verifier-golang/errors"
 )
 
 type JwtVerifier struct {
@@ -43,8 +44,7 @@ type Jwt struct {
 	Claims map[string]interface{}
 }
 
-
-func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
+func (j *JwtVerifier) New() *JwtVerifier {
 	// Default to OIDC discovery if none is defined
 	if j.Discovery == nil {
 		disc := oidc.Oidc{}
@@ -57,8 +57,14 @@ func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
 		j.Adaptor = adaptor.New()
 	}
 
+	return j
+}
+
+
+func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
+
 	if jwt == "" {
-		return nil, fmt.Errorf("a valid jwt must be provided: %s", jwt)
+		return nil, errors.JwtEmptyStringError()
 	}
 
 	metaData := j.getMetaData()
@@ -81,6 +87,14 @@ func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
 	}
 
 	return &myJwt, nil
+}
+
+func (j *JwtVerifier) GetDiscovery() discovery.Discovery {
+	return j.Discovery
+}
+
+func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
+	return j.Adaptor
 }
 
 func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {

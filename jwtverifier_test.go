@@ -18,31 +18,52 @@ package jwtverifier
 
 import (
 	"testing"
-	"fmt"
+	"reflect"
+	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
+	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/okta/okta-jwt-verifier-golang/errors"
 )
 
-func TestTryingToVerifyWithNoJwtReturnsError(t *testing.T) {
-	verifier := JwtVerifier{
-		 issuer: "https://samples-test.oktapreview.com/oauth2/default",
-		clientId: "0oae1yonf1hmdREQ80h7",
-		audience: "api://default",
-		nonce: "nonce",
+func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "issuer",
+		ClientId: "clientId",
 	}
-	_, err := verifier.Verify("")
 
-	if err == nil {
-		t.Errorf("An error was not returned when not providing a jwt to the Verify method")
+	jv := jvs.New()
+
+	if reflect.TypeOf(jv.GetDiscovery()) != reflect.TypeOf(oidc.Oidc{}) {
+		t.Errorf("discovery did not set to oidc by default.  Was set to: %s",
+			reflect.TypeOf(jv.GetDiscovery()))
 	}
 }
 
-func TestIfNoDiscoveryIsProvidedItDefaultsToOauth(t *testing.T) {
-	verifier := JwtVerifier{
-		issuer: "https://samples-test.oktapreview.com/oauth2/default",
-		clientId: "0oae1yonf1hmdREQ80h7",
-		audience: "api://default",
-		nonce: "nonce",
+func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adaptor(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "issuer",
+		ClientId: "clientId",
 	}
 
-	fmt.Println(verifier.GetDiscovery())
+	jv := jvs.New()
+
+	if reflect.TypeOf(jv.GetAdaptor()) != reflect.TypeOf(lestrratGoJwx.LestrratGoJwx{}) {
+		t.Errorf("adaptor did not set to lestrratGoJwx by default.  Was set to: %s",
+			reflect.TypeOf(jv.GetAdaptor()))
+	}
 }
 
+func Test_an_error_is_set_if_jwt_is_empty_string_when_verifying(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+		ClientId: "clientId",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.Verify("")
+
+	if err == nil || err.Error() != errors.JwtEmptyStringError().Error() {
+		t.Errorf("an error was not thrown for an empty jwt string")
+	}
+
+}
