@@ -103,6 +103,7 @@ func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
 	err = j.validateAudience(claims["aud"])
 	err = j.validateClientId(claims["cid"])
 	err = j.validateExp(claims["exp"])
+	err = j.validateIat(claims["iat"])
 
 	if err != nil {
 		return fmt.Errorf("validation of claims failed: %s", err)
@@ -148,6 +149,13 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 func (j *JwtVerifier) validateExp(exp interface{}) error {
 	if float64(time.Now().Unix()) > exp.(float64) {
 		return fmt.Errorf("the token is expired")
+	}
+	return nil
+}
+
+func (j *JwtVerifier) validateIat(iat interface{}) error {
+	if float64(time.Now().Unix()) < iat.(float64) {
+		return fmt.Errorf("the token was issued in the future")
 	}
 	return nil
 }
