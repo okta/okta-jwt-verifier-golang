@@ -27,6 +27,7 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"time"
+	"strings"
 )
 
 type JwtVerifier struct {
@@ -99,14 +100,35 @@ func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
 }
 
 func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
+	var allErrors []string
+
 	err := j.validateNonce(claims["nonce"])
+	if err != nil {
+		allErrors = append(allErrors, err.Error())
+	}
+
 	err = j.validateAudience(claims["aud"])
+	if err != nil {
+		allErrors = append(allErrors, err.Error())
+	}
+
 	err = j.validateClientId(claims["cid"])
+	if err != nil {
+		allErrors = append(allErrors, err.Error())
+	}
+
 	err = j.validateExp(claims["exp"])
+	if err != nil {
+		allErrors = append(allErrors, err.Error())
+	}
+
 	err = j.validateIat(claims["iat"])
+	if err != nil {
+		allErrors = append(allErrors, err.Error())
+	}
 
 	if err != nil {
-		return fmt.Errorf("validation of claims failed: %s", err)
+		return fmt.Errorf("validation of claims failed:\n  %s", strings.Join(allErrors, "\n"))
 	}
 
 	return nil
