@@ -67,3 +67,31 @@ func Test_an_error_is_set_if_jwt_is_empty_string_when_verifying(t *testing.T) {
 	}
 
 }
+
+func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+		ClientId: "clientId",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.Verify("aa.bb.cc")
+
+	if err == nil {
+		t.Errorf("an error was not thrown for an invalid jwt string")
+	}
+
+	_, err = jv.Verify("aa.bb")
+
+	if err == nil {
+		t.Errorf("an error was not thrown for an incomplete jwt string")
+	}
+
+	_, err = jv.Verify("aa")
+
+	if err == nil {
+		t.Errorf("an error was not thrown for a string only")
+	}
+
+}

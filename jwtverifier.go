@@ -26,6 +26,7 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
+	"time"
 )
 
 type JwtVerifier struct {
@@ -101,6 +102,7 @@ func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
 	err := j.validateNonce(claims["nonce"])
 	err = j.validateAudience(claims["aud"])
 	err = j.validateClientId(claims["cid"])
+	err = j.validateExp(claims["exp"])
 
 	if err != nil {
 		return fmt.Errorf("validation of claims failed: %s", err)
@@ -125,8 +127,8 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 		log.Println("No audience was provided to validate against.")
 		return nil
 	}
-	if audience != j.ClaimsToValidate["audience"] {
-		return fmt.Errorf("audience: %s does not match %s", audience, j.ClaimsToValidate["audience"])
+	if audience != j.ClaimsToValidate["aud"] {
+		return fmt.Errorf("aud: %s does not match %s", audience, j.ClaimsToValidate["aud"])
 	}
 	return nil
 }
@@ -139,6 +141,13 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 
 	if clientId != j.ClaimsToValidate["cid"] {
 		return fmt.Errorf("clientId: %s does not match %s", clientId, j.ClaimsToValidate["cid"])
+	}
+	return nil
+}
+
+func (j *JwtVerifier) validateExp(exp interface{}) error {
+	if float64(time.Now().Unix()) > exp.(float64) {
+		return fmt.Errorf("the token is expired")
 	}
 	return nil
 }

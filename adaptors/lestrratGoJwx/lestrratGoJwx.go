@@ -42,7 +42,7 @@ func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) 
 	token, err := jws.VerifyWithJKU([]byte(jwt), jwkUri)
 
 	if err != nil {
-		log.Printf("could not verify with JKU: %e", err)
+		log.Printf("could not verify with JKU. Jwt Provided: %s", jwt)
 		return nil, err
 	}
 
