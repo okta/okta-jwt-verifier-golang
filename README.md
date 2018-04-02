@@ -16,7 +16,9 @@ This library was built to keep configuration to a minimum. To get it running at 
 - **Client ID**- These can be found on the "General" tab of the Web application that you created earlier in the Okta Developer Console.
 
 ```go
-jwtVerifierSetup := JwtVerifier{
+import github.com/okta/okta-jwt-verifier-golang
+
+jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: {{ISSUER}},
         ClientId: {{CLIENT_ID}},
 }
