@@ -136,7 +136,6 @@ func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
 
 func (j *JwtVerifier) validateNonce(nonce interface{}) error {
 	if j.ClaimsToValidate["nonce"] == "" {
-		log.Println("No nonce was provided to validate against.")
 		return nil
 	}
 	if nonce != j.ClaimsToValidate["nonce"] {
@@ -147,7 +146,6 @@ func (j *JwtVerifier) validateNonce(nonce interface{}) error {
 
 func (j *JwtVerifier) validateAudience(audience interface{}) error {
 	if j.ClaimsToValidate["aud"] == "" {
-		log.Println("No audience was provided to validate against.")
 		return nil
 	}
 	if audience != j.ClaimsToValidate["aud"] {
@@ -158,7 +156,6 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 
 func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 	if j.ClaimsToValidate["cid"] == "" {
-		log.Println("No audience was provided to validate against.")
 		return nil
 	}
 

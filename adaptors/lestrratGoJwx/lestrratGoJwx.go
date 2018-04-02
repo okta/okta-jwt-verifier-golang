@@ -33,7 +33,6 @@ func (lgj LestrratGoJwx) New() adaptors.Adaptor {
 }
 
 func (lgj LestrratGoJwx) GetKey(jwkUri string) {
-	log.Printf("Do not need to get key")
 	return
 }
 
@@ -42,7 +41,6 @@ func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) 
 	token, err := jws.VerifyWithJKU([]byte(jwt), jwkUri)
 
 	if err != nil {
-		log.Printf("could not verify with JKU. Jwt Provided: %s", jwt)
 		return nil, err
 	}
 
