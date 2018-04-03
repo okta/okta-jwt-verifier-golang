@@ -19,7 +19,6 @@ package lestrratGoJwx
 import (
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/lestrrat-go/jwx/jwk"
-	"log"
 	"github.com/lestrrat-go/jwx/jws"
 	"encoding/json"
 )
