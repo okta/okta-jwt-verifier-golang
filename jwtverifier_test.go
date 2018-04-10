@@ -22,6 +22,7 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
+	"strings"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
@@ -81,17 +82,27 @@ func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
 	if err == nil {
 		t.Errorf("an error was not thrown for an invalid jwt string")
 	}
+	if !strings.Contains(err.Error(), "token is not valid") {
+		t.Errorf("an error was not thrown when it should have: " + err.Error())
+	}
 
 	_, err = jv.Verify("aa.bb")
 
 	if err == nil {
 		t.Errorf("an error was not thrown for an incomplete jwt string")
 	}
+	if !strings.Contains(err.Error(), "token is not valid") {
+		t.Errorf("an error was not thrown when it should have: " + err.Error())
+	}
 
 	_, err = jv.Verify("aa")
 
 	if err == nil {
 		t.Errorf("an error was not thrown for a string only")
+	}
+
+	if !strings.Contains(err.Error(), "token is not valid") {
+		t.Errorf("an error was not thrown when it should have: " + err.Error())
 	}
 
 }
