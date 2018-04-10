@@ -127,7 +127,7 @@ func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
 		allErrors = append(allErrors, err.Error())
 	}
 
-	if err != nil {
+	if allErrors != nil {
 		return fmt.Errorf("validation of claims failed:\n  %s", strings.Join(allErrors, "\n"))
 	}
 
