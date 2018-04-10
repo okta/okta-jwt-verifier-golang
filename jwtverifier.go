@@ -28,6 +28,8 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"time"
 	"strings"
+	"regexp"
+	"encoding/base64"
 )
 
 type JwtVerifier struct {
@@ -69,7 +71,14 @@ func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
 		return nil, errors.JwtEmptyStringError()
 	}
 
-	metaData := j.getMetaData()
+	if isValidJwt(jwt) == false {
+		return nil, fmt.Errorf("the token is not valid")
+	}
+
+	metaData, err := j.getMetaData()
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := j.Adaptor.Decode(jwt, metaData["jwks_uri"].(string))
 
@@ -179,13 +188,14 @@ func (j *JwtVerifier) validateIat(iat interface{}) error {
 	return nil
 }
 
-func (j *JwtVerifier) getMetaData() map[string]interface{} {
+func (j *JwtVerifier) getMetaData() (map[string]interface{},error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
 	resp, err := http.Get(metaDataUrl)
 
 	if err != nil {
 		log.Fatal(err)
+		return nil, fmt.Errorf("request for metadata was not successful: %s", err)
 	}
 
 	defer resp.Body.Close()
@@ -193,5 +203,23 @@ func (j *JwtVerifier) getMetaData() map[string]interface{} {
 	md := make(map[string]interface{})
 	json.NewDecoder(resp.Body).Decode(&md)
 
-	return md
+	return md, nil
+}
+
+func isValidJwt(jwt string) bool {
+	// Verify that the JWT contains at least one period ('.') character.
+	var jwtRegex = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`).MatchString
+	if ! jwtRegex(jwt) {
+		return false
+	}
+
+	parts := strings.Split(jwt, ".")
+	header := parts[0]
+	_, err := base64.StdEncoding.DecodeString(header)
+
+	if err != nil {
+		return false
+	}
+
+	return true
 }
