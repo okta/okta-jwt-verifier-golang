@@ -101,6 +101,8 @@ func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
 		t.Errorf("an error was not thrown for a string only")
 	}
 
+	_, err = jv.Verify("eyJhbGciOiJFUzI1NiIsImtpZCI6IjllciJ9.eyJhdWQiOiJodHRwczovL2JhY2tlbmQuZXhhbXBsZS5jb20iLCJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZXhwIjoxNDQxOTE3NTkzLCJpYXQiOjE0NDE5MTc1MzMsInN1YiI6ImJjQGV4YW1wbGUuY29tIiwic2NwIjpbImFwaSJdfQ.MXgnpvPMo0nhcePwnQbunD2gw_pDyCFA-Saobl6gyLAdyPbaALFuAOyFc4XTWaPEnHV_LGmXklSTpz0yC7hlSQ")
+
 	if !strings.Contains(err.Error(), "token is not valid") {
 		t.Errorf("an error was not thrown when it should have: " + err.Error())
 	}
