@@ -216,7 +216,6 @@ func isValidJwt(jwt string) bool {
 
 	parts := strings.Split(jwt, ".")
 	header := parts[0]
-	header = "eyJhbGciOiJFUzI1NiIsImtpZCI6IjllciJ9"
 	header = padHeader(header)
 	headerDecoded, err := base64.StdEncoding.DecodeString(header)
 
