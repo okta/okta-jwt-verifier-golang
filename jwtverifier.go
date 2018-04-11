@@ -28,6 +28,7 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"time"
 	"strings"
+	//"regexp"
 	"regexp"
 	"encoding/base64"
 )
@@ -215,11 +216,22 @@ func isValidJwt(jwt string) bool {
 
 	parts := strings.Split(jwt, ".")
 	header := parts[0]
-	_, err := base64.StdEncoding.DecodeString(header)
+	header = padHeader(header)
+	headerDecoded, err := base64.StdEncoding.DecodeString(header)
 
 	if err != nil {
 		return false
 	}
 
-	return true
+
+	var jsonObject map[string]interface{}
+	isHeaderJson := json.Unmarshal([]byte(headerDecoded), &jsonObject) == nil
+
+	return isHeaderJson
+}
+func padHeader(header string) string {
+	if i := len(header) % 4; i != 0 {
+		header += strings.Repeat("=", 4-i)
+	}
+	return header
 }
