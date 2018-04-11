@@ -216,6 +216,7 @@ func isValidJwt(jwt string) bool {
 
 	parts := strings.Split(jwt, ".")
 	header := parts[0]
+	header = "eyJhbGciOiJFUzI1NiIsImtpZCI6IjllciJ9"
 	header = padHeader(header)
 	headerDecoded, err := base64.StdEncoding.DecodeString(header)
 
@@ -226,8 +227,26 @@ func isValidJwt(jwt string) bool {
 
 	var jsonObject map[string]interface{}
 	isHeaderJson := json.Unmarshal([]byte(headerDecoded), &jsonObject) == nil
+	if isHeaderJson == false {
+		return false
+	}
 
-	return isHeaderJson
+	if len(jsonObject) != 2 {
+		return false
+	}
+
+	 _, algExists := jsonObject["alg"]
+	 _, kidExists := jsonObject["kid"]
+
+	 if algExists == false || kidExists == false {
+	 	return false
+	 }
+
+	if jsonObject["alg"] != "RS256" {
+		return false
+	}
+
+	return true
 }
 func padHeader(header string) string {
 	if i := len(header) % 4; i != 0 {
