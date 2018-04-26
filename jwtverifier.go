@@ -25,7 +25,6 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/discovery"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -35,13 +34,13 @@ import (
 type JwtVerifier struct {
 	Issuer string
 
-	Leeway int64
-
 	ClaimsToValidate map[string]string
 
 	Discovery discovery.Discovery
 
 	Adaptor adaptors.Adaptor
+
+	leeway int64
 }
 
 type Jwt struct {
@@ -62,13 +61,13 @@ func (j *JwtVerifier) New() *JwtVerifier {
 	}
 
 	// Default to PT2M Leeway
-	j.Leeway = 120
+	j.leeway = 120
 
 	return j
 }
 
 func (j *JwtVerifier) SetLeeway(seconds int64) {
-	j.Leeway = seconds
+	j.leeway = seconds
 }
 
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
@@ -206,22 +205,22 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 }
 
 func (j *JwtVerifier) validateExp(exp interface{}) error {
-	if float64(time.Now().Unix() - j.Leeway) > exp.(float64) {
+	if float64(time.Now().Unix() - j.leeway) > exp.(float64) {
 		return fmt.Errorf("the token is expired")
 	}
 	return nil
 }
 
 func (j *JwtVerifier) validateIat(iat interface{}) error {
-	if float64(time.Now().Unix() + j.Leeway) < iat.(float64) {
+	if float64(time.Now().Unix() + j.leeway) < iat.(float64) {
 		return fmt.Errorf("the token was issued in the future")
 	}
 	return nil
 }
 
 func (j *JwtVerifier) validateIss(issuer interface{}) error {
-	if issuer != j.ClaimsToValidate["iss"] {
-		return fmt.Errorf("iss: %s does not match %s", issuer, j.ClaimsToValidate["iss"])
+	if issuer != j.Issuer {
+		return fmt.Errorf("iss: %s does not match %s", issuer, j.Issuer)
 	}
 	return nil
 }

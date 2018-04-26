@@ -41,7 +41,7 @@ This will either provide you with the token which gives you access to all the cl
 
 ```go
 //Geting the sub from the token
-sub := token["sub"]
+sub := token.Claims["sub"]
 ```
 
 #### Dealing with clock skew
