@@ -20,16 +20,21 @@ import github.com/okta/okta-jwt-verifier-golang
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: {{ISSUER}},
-        ClientId: {{CLIENT_ID}},
 }
 
 verifier := jwtVerifierSetup.New()
 ```
 
-Once you have the `verifier` set up, you can then issue the `Verify` command.
+Once you have the `verifier` set up, you can then issue one of the `Verify*` commands depending on the type of token.
 
+#### Access Token Validation
 ```go
-token, err := verifier.Verify({JWT})
+token, err := verifier.VerifyAccessToken({JWT})
+```
+
+#### Id Token Validation
+```go
+token, err := verifier.VerifyIdToken({JWT})
 ```
 
 This will either provide you with the token which gives you access to all the claims, or an error. The token struct contains a `Claims` property that will give you a `map[string]interface{}` of all the claims in the token.
@@ -46,10 +51,10 @@ This library also gives you a way to verify the `nonce` and `audience` claims. T
 toValidate := map[string]string{}
 toValidate["nonce"] = {{NONCE}}
 toValidate["aud"] = {{AUDIENCE}}
+toValidate["cid"] = {{CLIENT_ID}}
 
 jwtVerifierSetup := JwtVerifier{
         Issuer: {{ISSUER}},
-        ClientId: {{CLIENT_ID}},
         ClaimsToValidate: toValidate,
 }
 
