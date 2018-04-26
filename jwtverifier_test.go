@@ -17,18 +17,17 @@
 package jwtverifier
 
 import (
-	"testing"
-	"reflect"
-	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
+	"reflect"
 	"strings"
+	"testing"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "issuer",
-		ClientId: "clientId",
 	}
 
 	jv := jvs.New()
@@ -42,7 +41,6 @@ func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *
 func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adaptor(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "issuer",
-		ClientId: "clientId",
 	}
 
 	jv := jvs.New()
@@ -56,14 +54,13 @@ func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adap
 func Test_an_error_is_set_if_jwt_is_empty_string_when_verifying(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "https://samples-test.oktapreview.com",
-		ClientId: "clientId",
 	}
 
 	jv := jvs.New()
 
-	_, err := jv.Verify("")
+	_, err := jv.VerifyAccessToken("")
 
-	if err == nil || err.Error() != errors.JwtEmptyStringError().Error() {
+	if err == nil || !strings.Contains(err.Error(), errors.JwtEmptyStringError().Error()) {
 		t.Errorf("an error was not thrown for an empty jwt string")
 	}
 
@@ -72,12 +69,11 @@ func Test_an_error_is_set_if_jwt_is_empty_string_when_verifying(t *testing.T) {
 func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "https://samples-test.oktapreview.com",
-		ClientId: "clientId",
 	}
 
 	jv := jvs.New()
 
-	_, err := jv.Verify("aa.bb.cc")
+	_, err := jv.VerifyAccessToken("aa.bb.cc")
 
 	if err == nil {
 		t.Errorf("an error was not thrown for an invalid jwt string")
@@ -86,7 +82,7 @@ func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
 		t.Errorf("an error was not thrown when it should have: " + err.Error())
 	}
 
-	_, err = jv.Verify("aa.bb")
+	_, err = jv.VerifyAccessToken("aa.bb")
 
 	if err == nil {
 		t.Errorf("an error was not thrown for an incomplete jwt string")
@@ -95,13 +91,13 @@ func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
 		t.Errorf("an error was not thrown when it should have: " + err.Error())
 	}
 
-	_, err = jv.Verify("aa")
+	_, err = jv.VerifyAccessToken("aa")
 
 	if err == nil {
 		t.Errorf("an error was not thrown for a string only")
 	}
 
-	_, err = jv.Verify("eyJhbGciOiJFUzI1NiIsImtpZCI6IjllciJ9.eyJhdWQiOiJodHRwczovL2JhY2tlbmQuZXhhbXBsZS5jb20iLCJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZXhwIjoxNDQxOTE3NTkzLCJpYXQiOjE0NDE5MTc1MzMsInN1YiI6ImJjQGV4YW1wbGUuY29tIiwic2NwIjpbImFwaSJdfQ.MXgnpvPMo0nhcePwnQbunD2gw_pDyCFA-Saobl6gyLAdyPbaALFuAOyFc4XTWaPEnHV_LGmXklSTpz0yC7hlSQ")
+	_, err = jv.VerifyAccessToken("eyJhbGciOiJFUzI1NiIsImtpZCI6IjllciJ9.eyJhdWQiOiJodHRwczovL2JhY2tlbmQuZXhhbXBsZS5jb20iLCJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZXhwIjoxNDQxOTE3NTkzLCJpYXQiOjE0NDE5MTc1MzMsInN1YiI6ImJjQGV4YW1wbGUuY29tIiwic2NwIjpbImFwaSJdfQ.MXgnpvPMo0nhcePwnQbunD2gw_pDyCFA-Saobl6gyLAdyPbaALFuAOyFc4XTWaPEnHV_LGmXklSTpz0yC7hlSQ")
 
 	if !strings.Contains(err.Error(), "token is not valid") {
 		t.Errorf("an error was not thrown when it should have: " + err.Error())

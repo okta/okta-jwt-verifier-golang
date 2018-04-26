@@ -17,26 +17,23 @@
 package jwtverifier
 
 import (
-	"fmt"
-	"github.com/okta/okta-jwt-verifier-golang/discovery"
-	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
-	"net/http"
-	"log"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/okta/okta-jwt-verifier-golang/discovery"
+	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
-	"time"
-	"strings"
-	//"regexp"
+	"log"
+	"net/http"
 	"regexp"
-	"encoding/base64"
+	"strings"
+	"time"
 )
 
 type JwtVerifier struct {
 	Issuer string
-
-	ClientId string
 
 	ClaimsToValidate map[string]string
 
@@ -65,17 +62,52 @@ func (j *JwtVerifier) New() *JwtVerifier {
 	return j
 }
 
-
-func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
-
-	if jwt == "" {
-		return nil, errors.JwtEmptyStringError()
+func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
+	validJwt, err := j.isValidJwt(jwt)
+	if validJwt == false {
+		return nil, fmt.Errorf("token is not valid: %s", err)
 	}
 
-	if isValidJwt(jwt) == false {
-		return nil, fmt.Errorf("the token is not valid")
+	resp, err := j.decodeJwt(jwt)
+	if err != nil {
+		return nil, err
 	}
 
+	token := resp.(map[string]interface{})
+
+	myJwt := Jwt{
+		Claims: token,
+	}
+
+	err = j.validateIss(token["iss"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err)
+	}
+
+	err = j.validateAudience(token["aud"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err)
+	}
+
+	err = j.validateClientId(token["cid"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Client Id` was not able to be validated. %s", err)
+	}
+
+	err = j.validateExp(token["exp"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err)
+	}
+
+	err = j.validateExp(token["iat"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err)
+	}
+
+	return &myJwt, nil
+}
+
+func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 	metaData, err := j.getMetaData()
 	if err != nil {
 		return nil, err
@@ -86,16 +118,50 @@ func (j *JwtVerifier) Verify(jwt string) (*Jwt, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not decode token: %s", err)
 	}
+
+	return resp, nil
+}
+
+func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
+	validJwt, err := j.isValidJwt(jwt)
+	if validJwt == false {
+		return nil, err
+	}
+
+	resp, err := j.decodeJwt(jwt)
+	if err != nil {
+		return nil, err
+	}
+
 	token := resp.(map[string]interface{})
 
 	myJwt := Jwt{
 		Claims: token,
 	}
 
-	err = j.validateClaims(token)
-
+	err = j.validateIss(token["iss"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("could not validate all claims: %s", err)
+		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err)
+	}
+
+	err = j.validateAudience(token["aud"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err)
+	}
+
+	err = j.validateExp(token["exp"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err)
+	}
+
+	err = j.validateExp(token["iat"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err)
+	}
+
+	err = j.validateNonce(token["nonce"])
+	if err != nil {
+		return &myJwt, fmt.Errorf("the `Nonce` was not able to be validated. %s", err)
 	}
 
 	return &myJwt, nil
@@ -107,41 +173,6 @@ func (j *JwtVerifier) GetDiscovery() discovery.Discovery {
 
 func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
 	return j.Adaptor
-}
-
-func (j *JwtVerifier) validateClaims(claims map[string]interface{}) error {
-	var allErrors []string
-
-	err := j.validateNonce(claims["nonce"])
-	if err != nil {
-		allErrors = append(allErrors, err.Error())
-	}
-
-	err = j.validateAudience(claims["aud"])
-	if err != nil {
-		allErrors = append(allErrors, err.Error())
-	}
-
-	err = j.validateClientId(claims["cid"])
-	if err != nil {
-		allErrors = append(allErrors, err.Error())
-	}
-
-	err = j.validateExp(claims["exp"])
-	if err != nil {
-		allErrors = append(allErrors, err.Error())
-	}
-
-	err = j.validateIat(claims["iat"])
-	if err != nil {
-		allErrors = append(allErrors, err.Error())
-	}
-
-	if allErrors != nil {
-		return fmt.Errorf("validation of claims failed:\n  %s", strings.Join(allErrors, "\n"))
-	}
-
-	return nil
 }
 
 func (j *JwtVerifier) validateNonce(nonce interface{}) error {
@@ -189,7 +220,18 @@ func (j *JwtVerifier) validateIat(iat interface{}) error {
 	return nil
 }
 
-func (j *JwtVerifier) getMetaData() (map[string]interface{},error) {
+func (j *JwtVerifier) validateIss(issuer interface{}) error {
+	if j.ClaimsToValidate["iss"] == "" {
+		return nil
+	}
+
+	if issuer != j.ClaimsToValidate["iss"] {
+		return fmt.Errorf("iss: %s does not match %s", issuer, j.ClaimsToValidate["iss"])
+	}
+	return nil
+}
+
+func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
 	resp, err := http.Get(metaDataUrl)
@@ -207,11 +249,15 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{},error) {
 	return md, nil
 }
 
-func isValidJwt(jwt string) bool {
+func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
+	if jwt == "" {
+		return false, errors.JwtEmptyStringError()
+	}
+
 	// Verify that the JWT contains at least one period ('.') character.
 	var jwtRegex = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`).MatchString
-	if ! jwtRegex(jwt) {
-		return false
+	if !jwtRegex(jwt) {
+		return false, nil
 	}
 
 	parts := strings.Split(jwt, ".")
@@ -220,32 +266,31 @@ func isValidJwt(jwt string) bool {
 	headerDecoded, err := base64.StdEncoding.DecodeString(header)
 
 	if err != nil {
-		return false
+		return false, nil
 	}
-
 
 	var jsonObject map[string]interface{}
 	isHeaderJson := json.Unmarshal([]byte(headerDecoded), &jsonObject) == nil
 	if isHeaderJson == false {
-		return false
+		return false, nil
 	}
 
 	if len(jsonObject) != 2 {
-		return false
+		return false, nil
 	}
 
-	 _, algExists := jsonObject["alg"]
-	 _, kidExists := jsonObject["kid"]
+	_, algExists := jsonObject["alg"]
+	_, kidExists := jsonObject["kid"]
 
-	 if algExists == false || kidExists == false {
-	 	return false
-	 }
+	if algExists == false || kidExists == false {
+		return false, nil
+	}
 
 	if jsonObject["alg"] != "RS256" {
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
 }
 func padHeader(header string) string {
 	if i := len(header) % 4; i != 0 {
