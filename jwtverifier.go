@@ -74,7 +74,7 @@ func (j *JwtVerifier) SetLeeway(seconds int64) {
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
 	if validJwt == false {
-		return nil, fmt.Errorf("token is not valid: %s", err)
+		return nil, fmt.Errorf("token is not valid: %s", err.Error())
 	}
 
 	resp, err := j.decodeJwt(jwt)
@@ -90,27 +90,27 @@ func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 
 	err = j.validateIss(token["iss"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateAudience(token["aud"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateClientId(token["cid"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Client Id` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Client Id` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateExp(token["exp"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateExp(token["iat"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err.Error())
 	}
 
 	return &myJwt, nil
@@ -125,7 +125,7 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 	resp, err := j.Adaptor.Decode(jwt, metaData["jwks_uri"].(string))
 
 	if err != nil {
-		return nil, fmt.Errorf("could not decode token: %s", err)
+		return nil, fmt.Errorf("could not decode token: %s", err.Error())
 	}
 
 	return resp, nil
@@ -134,7 +134,7 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
 	if validJwt == false {
-		return nil, err
+		return nil, fmt.Errorf("token is not valid: %s", err.Error())
 	}
 
 	resp, err := j.decodeJwt(jwt)
@@ -150,27 +150,27 @@ func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 
 	err = j.validateIss(token["iss"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateAudience(token["aud"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateExp(token["exp"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateExp(token["iat"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err.Error())
 	}
 
 	err = j.validateNonce(token["nonce"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Nonce` was not able to be validated. %s", err)
+		return &myJwt, fmt.Errorf("the `Nonce` was not able to be validated. %s", err.Error())
 	}
 
 	return &myJwt, nil
@@ -185,9 +185,6 @@ func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
 }
 
 func (j *JwtVerifier) validateNonce(nonce interface{}) error {
-	if j.ClaimsToValidate["nonce"] == "" {
-		return nil
-	}
 	if nonce != j.ClaimsToValidate["nonce"] {
 		return fmt.Errorf("nonce: %s does not match %s", nonce, j.ClaimsToValidate["nonce"])
 	}
@@ -195,9 +192,6 @@ func (j *JwtVerifier) validateNonce(nonce interface{}) error {
 }
 
 func (j *JwtVerifier) validateAudience(audience interface{}) error {
-	if j.ClaimsToValidate["aud"] == "" {
-		return nil
-	}
 	if audience != j.ClaimsToValidate["aud"] {
 		return fmt.Errorf("aud: %s does not match %s", audience, j.ClaimsToValidate["aud"])
 	}
@@ -205,10 +199,6 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 }
 
 func (j *JwtVerifier) validateClientId(clientId interface{}) error {
-	if j.ClaimsToValidate["cid"] == "" {
-		return nil
-	}
-
 	if clientId != j.ClaimsToValidate["cid"] {
 		return fmt.Errorf("clientId: %s does not match %s", clientId, j.ClaimsToValidate["cid"])
 	}
@@ -230,10 +220,6 @@ func (j *JwtVerifier) validateIat(iat interface{}) error {
 }
 
 func (j *JwtVerifier) validateIss(issuer interface{}) error {
-	if j.ClaimsToValidate["iss"] == "" {
-		return nil
-	}
-
 	if issuer != j.ClaimsToValidate["iss"] {
 		return fmt.Errorf("iss: %s does not match %s", issuer, j.ClaimsToValidate["iss"])
 	}
@@ -246,8 +232,8 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	resp, err := http.Get(metaDataUrl)
 
 	if err != nil {
-		log.Fatal(err)
-		return nil, fmt.Errorf("request for metadata was not successful: %s", err)
+		log.Fatal(err.Error())
+		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
 	}
 
 	defer resp.Body.Close()
