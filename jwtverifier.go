@@ -232,7 +232,6 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	resp, err := http.Get(metaDataUrl)
 
 	if err != nil {
-		log.Fatal(err.Error())
 		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
 	}
 
