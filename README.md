@@ -44,22 +44,6 @@ This will either provide you with the token which gives you access to all the cl
 sub := token["sub"]
 ```
 
-### Extended Usage
-This library also gives you a way to verify the `nonce` and `audience` claims. To do this, during the verifier setup, you need to pass it a `claimsToValidate` property.
-
-```go
-toValidate := map[string]string{}
-toValidate["nonce"] = {{NONCE}}
-toValidate["aud"] = {{AUDIENCE}}
-toValidate["cid"] = {{CLIENT_ID}}
-
-jwtVerifierSetup := JwtVerifier{
-        Issuer: {{ISSUER}},
-        ClaimsToValidate: toValidate,
-}
-
-```
-
 #### Dealing with clock skew
 We default to a PT2M clock skew adjustment in our validation.  If you need to change this, you can use the `SetLeeway` method:
 
