@@ -35,6 +35,8 @@ import (
 type JwtVerifier struct {
 	Issuer string
 
+	Leeway int64
+
 	ClaimsToValidate map[string]string
 
 	Discovery discovery.Discovery
@@ -58,6 +60,9 @@ func (j *JwtVerifier) New() *JwtVerifier {
 		adaptor := lestrratGoJwx.LestrratGoJwx{}
 		j.Adaptor = adaptor.New()
 	}
+
+	// Default to PT2M Leeway
+	j.Leeway = 120
 
 	return j
 }
@@ -207,14 +212,14 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 }
 
 func (j *JwtVerifier) validateExp(exp interface{}) error {
-	if float64(time.Now().Unix()) > exp.(float64) {
+	if float64(time.Now().Unix() - j.Leeway) > exp.(float64) {
 		return fmt.Errorf("the token is expired")
 	}
 	return nil
 }
 
 func (j *JwtVerifier) validateIat(iat interface{}) error {
-	if float64(time.Now().Unix()) < iat.(float64) {
+	if float64(time.Now().Unix() + j.Leeway) < iat.(float64) {
 		return fmt.Errorf("the token was issued in the future")
 	}
 	return nil
