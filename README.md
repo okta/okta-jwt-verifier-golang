@@ -15,25 +15,40 @@ This library was built to keep configuration to a minimum. To get it running at 
 - **Issuer** - This is the URL of the authorization server that will perform authentication.  All Developer Accounts have a "default" authorization server.  The issuer is a combination of your Org URL (found in the upper right of the console home page) and `/oauth2/default`. For example, `https://dev-1234.oktapreview.com/oauth2/default`.
 - **Client ID**- These can be found on the "General" tab of the Web application that you created earlier in the Okta Developer Console.
 
+#### Access Token Validation
 ```go
 import github.com/okta/okta-jwt-verifier-golang
 
+toValidate := map[string]string{}
+toValidate["aud"] = "api://default"
+
+
 jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: {{ISSUER}},
+        ClaimsToValidate: toValidate
 }
 
 verifier := jwtVerifierSetup.New()
-```
 
-Once you have the `verifier` set up, you can then issue one of the `Verify*` commands depending on the type of token.
-
-#### Access Token Validation
-```go
 token, err := verifier.VerifyAccessToken({JWT})
 ```
 
 #### Id Token Validation
 ```go
+import github.com/okta/okta-jwt-verifier-golang
+
+toValidate := map[string]string{}
+toValidate["nonce"] = {{NONCE}}
+toValidate["aud"] = {{CLIENT_ID}}
+
+
+jwtVerifierSetup := jwtverifier.JwtVerifier{
+        Issuer: {{ISSUER}},
+        ClaimsToValidate: toValidate
+}
+
+verifier := jwtVerifierSetup.New()
+
 token, err := verifier.VerifyIdToken({JWT})
 ```
 
