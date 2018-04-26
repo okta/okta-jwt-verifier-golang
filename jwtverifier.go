@@ -67,6 +67,10 @@ func (j *JwtVerifier) New() *JwtVerifier {
 	return j
 }
 
+func (j *JwtVerifier) SetLeeway(seconds int64) {
+	j.Leeway = seconds
+}
+
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
 	if validJwt == false {

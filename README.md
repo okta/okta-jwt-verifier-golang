@@ -59,3 +59,15 @@ jwtVerifierSetup := JwtVerifier{
 }
 
 ```
+
+#### Dealing with clock skew
+We default to a PT2M clock skew adjustment in our validation.  If you need to change this, you can use the `SetLeeway` method:
+
+```go
+jwtVerifierSetup := JwtVerifier{
+        Issuer: {{ISSUER}},
+}
+
+verifier := jwtVerifierSetup.New()
+verifier.SetLeeway({numberOfSeconds})
+```
