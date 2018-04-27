@@ -205,14 +205,14 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 }
 
 func (j *JwtVerifier) validateExp(exp interface{}) error {
-	if float64(time.Now().Unix() - j.leeway) > exp.(float64) {
+	if float64(time.Now().Unix()-j.leeway) > exp.(float64) {
 		return fmt.Errorf("the token is expired")
 	}
 	return nil
 }
 
 func (j *JwtVerifier) validateIat(iat interface{}) error {
-	if float64(time.Now().Unix() + j.leeway) < iat.(float64) {
+	if float64(time.Now().Unix()+j.leeway) < iat.(float64) {
 		return fmt.Errorf("the token was issued in the future")
 	}
 	return nil
@@ -250,7 +250,7 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 	// Verify that the JWT contains at least one period ('.') character.
 	var jwtRegex = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`).MatchString
 	if !jwtRegex(jwt) {
-		return false, nil
+		return false, fmt.Errorf("token must contain at least 1 period ('.') and only characters 'a-Z 0-9 _'")
 	}
 
 	parts := strings.Split(jwt, ".")
@@ -259,28 +259,36 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 	headerDecoded, err := base64.StdEncoding.DecodeString(header)
 
 	if err != nil {
-		return false, nil
+		return false, fmt.Errorf("the tokens header does not appear to be a base64 encoded string")
 	}
 
 	var jsonObject map[string]interface{}
 	isHeaderJson := json.Unmarshal([]byte(headerDecoded), &jsonObject) == nil
 	if isHeaderJson == false {
-		return false, nil
+		return false, fmt.Errorf("the tokens header is not a json object")
 	}
 
-	if len(jsonObject) != 2 {
-		return false, nil
+	if len(jsonObject) < 2 {
+		return false, fmt.Errorf("the tokens header does not contain enough properties")
+	}
+
+	if len(jsonObject) > 2 {
+		return false, fmt.Errorf("the tokens header contains too many properties")
 	}
 
 	_, algExists := jsonObject["alg"]
 	_, kidExists := jsonObject["kid"]
 
-	if algExists == false || kidExists == false {
-		return false, nil
+	if algExists == false {
+		return false, fmt.Errorf("the tokens header must contain an 'alg'")
+	}
+
+	if kidExists == false {
+		return false, fmt.Errorf("the tokens header must contain a 'kid'")
 	}
 
 	if jsonObject["alg"] != "RS256" {
-		return false, nil
+		return false, fmt.Errorf("the only supported alg is RS256")
 	}
 
 	return true, nil

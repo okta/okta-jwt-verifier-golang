@@ -19,10 +19,10 @@ package jwtverifier
 import (
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
-	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
@@ -51,56 +51,293 @@ func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adap
 	}
 }
 
-func Test_an_error_is_set_if_jwt_is_empty_string_when_verifying(t *testing.T) {
+func Test_can_validate_iss_from_issuer_provided(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "https://samples-test.oktapreview.com",
 	}
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyAccessToken("")
-
-	if err == nil || !strings.Contains(err.Error(), errors.JwtEmptyStringError().Error()) {
-		t.Errorf("an error was not thrown for an empty jwt string")
+	err := jv.validateIss("test")
+	if err == nil {
+		t.Errorf("the issuer validation did not trigger an error")
 	}
-
 }
 
-func Test_an_error_is_set_if_jwt_is_in_an_invalid_format(t *testing.T) {
+func Test_can_validate_nonce(t *testing.T) {
+	tv := map[string]string{}
+	tv["nonce"] = "abc123"
+
+	jvs := JwtVerifier{
+		Issuer:           "https://samples-test.oktapreview.com",
+		ClaimsToValidate: tv,
+	}
+
+	jv := jvs.New()
+
+	err := jv.validateNonce("test")
+	if err == nil {
+		t.Errorf("the nonce validation did not trigger an error")
+	}
+}
+
+func Test_can_validate_aud(t *testing.T) {
+	tv := map[string]string{}
+	tv["aud"] = "abc123"
+
+	jvs := JwtVerifier{
+		Issuer:           "https://samples-test.oktapreview.com",
+		ClaimsToValidate: tv,
+	}
+
+	jv := jvs.New()
+
+	err := jv.validateAudience("test")
+	if err == nil {
+		t.Errorf("the nonce validation did not trigger an error")
+	}
+}
+
+func Test_can_validate_cid(t *testing.T) {
+	tv := map[string]string{}
+	tv["cid"] = "abc123"
+
+	jvs := JwtVerifier{
+		Issuer:           "https://samples-test.oktapreview.com",
+		ClaimsToValidate: tv,
+	}
+
+	jv := jvs.New()
+
+	err := jv.validateNonce("test")
+	if err == nil {
+		t.Errorf("the cid validation did not trigger an error")
+	}
+}
+
+func Test_can_validate_iat(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "https://samples-test.oktapreview.com",
 	}
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyAccessToken("aa.bb.cc")
+	// token issued in future triggers error
+	err := jv.validateIat(float64(time.Now().Unix() + 300))
+	if err == nil {
+		t.Errorf("the iat validation did not trigger an error")
+	}
+
+	// token within leeway does not trigger error
+	err = jv.validateIat(float64(time.Now().Unix()))
+	if err != nil {
+		t.Errorf("the iat validation triggered an error")
+	}
+}
+
+func Test_can_validate_exp(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	// expired token triggers error
+	err := jv.validateExp(float64(time.Now().Unix() - 300))
+	if err == nil {
+		t.Errorf("the exp validation did not trigger an error for expired token")
+	}
+
+	// token within leeway does not trigger error
+	err = jv.validateExp(float64(time.Now().Unix()))
+	if err != nil {
+		t.Errorf("the exp validation triggered an error for valid token")
+	}
+}
+
+// ID TOKEN TESTS
+func Test_invalid_formatting_of_id_token_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("aa")
 
 	if err == nil {
-		t.Errorf("an error was not thrown for an invalid jwt string")
-	}
-	if !strings.Contains(err.Error(), "token is not valid") {
-		t.Errorf("an error was not thrown when it should have: " + err.Error())
+		t.Errorf("an error was not thrown when an id token does not contain at least 1 period ('.')")
 	}
 
-	_, err = jv.VerifyAccessToken("aa.bb")
+	if !strings.Contains(err.Error(), "token must contain at least 1 period ('.')") {
+		t.Errorf("the error for id token with no periods did not trigger")
+	}
+}
+
+func Test_an_id_token_header_that_is_improperly_formatted_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("123456789.aa.aa")
+
+	if !strings.Contains(err.Error(), "does not appear to be a base64 encoded string") {
+		t.Errorf("the error for id token with header that is not base64 encoded did not trigger")
+	}
+}
+
+func Test_an_id_token_header_that_is_not_decoded_into_json_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("aa.aa.aa")
+
+	if !strings.Contains(err.Error(), "not a json object") {
+		t.Errorf("the error for id token with header that is not a json object did not trigger")
+	}
+}
+
+func Test_an_id_token_header_that_is_not_contain_the_correct_parts_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIg0KfQ.aa.aa")
+
+	if !strings.Contains(err.Error(), "header does not contain enough properties") {
+		t.Errorf("the error for id token with header that does not contain enough properties did not trigger")
+	}
+
+	_, err = jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIiwNCiAgImFuZCI6ICJ0aGlzIiwNCiAgImhlbGxvIjogIndvcmxkIg0KfQ.aa.aa")
+
+	if !strings.Contains(err.Error(), "header contains too many properties") {
+		t.Errorf("the error for id token with header that contains too many properties did not trigger")
+	}
+
+	_, err = jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
+
+	if !strings.Contains(err.Error(), "header must contain an 'alg'") {
+		t.Errorf("the error for id token with header that did not contain alg did not trigger")
+	}
+
+	_, err = jv.VerifyIdToken("ew0KICAiYWxnIjogIlJTMjU2IiwNCiAgImFuZCI6ICJ0aGlzIg0KfQ.aa.aa")
+
+	if !strings.Contains(err.Error(), "header must contain a 'kid'") {
+		t.Errorf("the error for id token with header that did not contain kid did not trigger")
+	}
+}
+
+func Test_an_id_token_header_that_is_not_rs256_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbGciOiAiSFMyNTYiDQp9.aa.aa")
+
+	if !strings.Contains(err.Error(), "only supported alg is RS256") {
+		t.Errorf("the error for id token with with wrong alg did not trigger")
+	}
+}
+
+// ACCESS TOKEN TESTS
+func Test_invalid_formatting_of_access_token_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("aa")
 
 	if err == nil {
-		t.Errorf("an error was not thrown for an incomplete jwt string")
-	}
-	if !strings.Contains(err.Error(), "token is not valid") {
-		t.Errorf("an error was not thrown when it should have: " + err.Error())
+		t.Errorf("an error was not thrown when an access token does not contain at least 1 period ('.')")
 	}
 
-	_, err = jv.VerifyAccessToken("aa")
+	if !strings.Contains(err.Error(), "token must contain at least 1 period ('.')") {
+		t.Errorf("the error for access token with no periods did not trigger")
+	}
+}
 
-	if err == nil {
-		t.Errorf("an error was not thrown for a string only")
+func Test_an_access_token_header_that_is_improperly_formatted_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
 	}
 
-	_, err = jv.VerifyAccessToken("eyJhbGciOiJFUzI1NiIsImtpZCI6IjllciJ9.eyJhdWQiOiJodHRwczovL2JhY2tlbmQuZXhhbXBsZS5jb20iLCJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZXhwIjoxNDQxOTE3NTkzLCJpYXQiOjE0NDE5MTc1MzMsInN1YiI6ImJjQGV4YW1wbGUuY29tIiwic2NwIjpbImFwaSJdfQ.MXgnpvPMo0nhcePwnQbunD2gw_pDyCFA-Saobl6gyLAdyPbaALFuAOyFc4XTWaPEnHV_LGmXklSTpz0yC7hlSQ")
+	jv := jvs.New()
 
-	if !strings.Contains(err.Error(), "token is not valid") {
-		t.Errorf("an error was not thrown when it should have: " + err.Error())
+	_, err := jv.VerifyIdToken("123456789.aa.aa")
+
+	if !strings.Contains(err.Error(), "does not appear to be a base64 encoded string") {
+		t.Errorf("the error for access token with header that is not base64 encoded did not trigger")
+	}
+}
+
+func Test_an_access_token_header_that_is_not_decoded_into_json_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
 	}
 
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("aa.aa.aa")
+
+	if !strings.Contains(err.Error(), "not a json object") {
+		t.Errorf("the error for access token with header that is not a json object did not trigger")
+	}
+}
+
+func Test_an_access_token_header_that_is_not_contain_the_correct_parts_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIg0KfQ.aa.aa")
+
+	if !strings.Contains(err.Error(), "header does not contain enough properties") {
+		t.Errorf("the error for access token with header that does not contain enough properties did not" +
+			" trigger")
+	}
+
+	_, err = jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIiwNCiAgImFuZCI6ICJ0aGlzIiwNCiAgImhlbGxvIjogIndvcmxkIg0KfQ.aa.aa")
+
+	if !strings.Contains(err.Error(), "header contains too many properties") {
+		t.Errorf("the error for access token with header that contains too many properties did not trigger")
+	}
+
+	_, err = jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
+
+	if !strings.Contains(err.Error(), "header must contain an 'alg'") {
+		t.Errorf("the error for access token with header that did not contain alg did not trigger")
+	}
+
+	_, err = jv.VerifyIdToken("ew0KICAiYWxnIjogIlJTMjU2IiwNCiAgImFuZCI6ICJ0aGlzIg0KfQ.aa.aa")
+
+	if !strings.Contains(err.Error(), "header must contain a 'kid'") {
+		t.Errorf("the error for access token with header that did not contain kid did not trigger")
+	}
+}
+
+func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T) {
+	jvs := JwtVerifier{
+		Issuer: "https://samples-test.oktapreview.com",
+	}
+
+	jv := jvs.New()
+
+	_, err := jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbGciOiAiSFMyNTYiDQp9.aa.aa")
+
+	if !strings.Contains(err.Error(), "only supported alg is RS256") {
+		t.Errorf("the error for access token with with wrong alg did not trigger")
+	}
 }
