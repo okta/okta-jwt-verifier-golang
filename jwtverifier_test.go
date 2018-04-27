@@ -256,7 +256,7 @@ func Test_invalid_formatting_of_access_token_throws_an_error(t *testing.T) {
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyIdToken("aa")
+	_, err := jv.VerifyAccessToken("aa")
 
 	if err == nil {
 		t.Errorf("an error was not thrown when an access token does not contain at least 1 period ('.')")
@@ -274,7 +274,7 @@ func Test_an_access_token_header_that_is_improperly_formatted_throws_an_error(t 
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyIdToken("123456789.aa.aa")
+	_, err := jv.VerifyAccessToken("123456789.aa.aa")
 
 	if !strings.Contains(err.Error(), "does not appear to be a base64 encoded string") {
 		t.Errorf("the error for access token with header that is not base64 encoded did not trigger")
@@ -288,7 +288,7 @@ func Test_an_access_token_header_that_is_not_decoded_into_json_throws_an_error(t
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyIdToken("aa.aa.aa")
+	_, err := jv.VerifyAccessToken("aa.aa.aa")
 
 	if !strings.Contains(err.Error(), "not a json object") {
 		t.Errorf("the error for access token with header that is not a json object did not trigger")
@@ -302,26 +302,26 @@ func Test_an_access_token_header_that_is_not_contain_the_correct_parts_throws_an
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIg0KfQ.aa.aa")
+	_, err := jv.VerifyAccessToken("ew0KICAidGVzdCI6ICJ0aGlzIg0KfQ.aa.aa")
 
 	if !strings.Contains(err.Error(), "header does not contain enough properties") {
 		t.Errorf("the error for access token with header that does not contain enough properties did not" +
 			" trigger")
 	}
 
-	_, err = jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIiwNCiAgImFuZCI6ICJ0aGlzIiwNCiAgImhlbGxvIjogIndvcmxkIg0KfQ.aa.aa")
+	_, err = jv.VerifyAccessToken("ew0KICAidGVzdCI6ICJ0aGlzIiwNCiAgImFuZCI6ICJ0aGlzIiwNCiAgImhlbGxvIjogIndvcmxkIg0KfQ.aa.aa")
 
 	if !strings.Contains(err.Error(), "header contains too many properties") {
 		t.Errorf("the error for access token with header that contains too many properties did not trigger")
 	}
 
-	_, err = jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
+	_, err = jv.VerifyAccessToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
 
 	if !strings.Contains(err.Error(), "header must contain an 'alg'") {
 		t.Errorf("the error for access token with header that did not contain alg did not trigger")
 	}
 
-	_, err = jv.VerifyIdToken("ew0KICAiYWxnIjogIlJTMjU2IiwNCiAgImFuZCI6ICJ0aGlzIg0KfQ.aa.aa")
+	_, err = jv.VerifyAccessToken("ew0KICAiYWxnIjogIlJTMjU2IiwNCiAgImFuZCI6ICJ0aGlzIg0KfQ.aa.aa")
 
 	if !strings.Contains(err.Error(), "header must contain a 'kid'") {
 		t.Errorf("the error for access token with header that did not contain kid did not trigger")
@@ -335,7 +335,7 @@ func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T)
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbGciOiAiSFMyNTYiDQp9.aa.aa")
+	_, err := jv.VerifyAccessToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbGciOiAiSFMyNTYiDQp9.aa.aa")
 
 	if !strings.Contains(err.Error(), "only supported alg is RS256") {
 		t.Errorf("the error for access token with with wrong alg did not trigger")
