@@ -21,7 +21,7 @@ import github.com/okta/okta-jwt-verifier-golang
 
 toValidate := map[string]string{}
 toValidate["aud"] = "api://default"
-
+toValidate["cid"] = {{CLIENT_ID}}
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: {{ISSUER}},
@@ -55,7 +55,7 @@ token, err := verifier.VerifyIdToken({JWT})
 This will either provide you with the token which gives you access to all the claims, or an error. The token struct contains a `Claims` property that will give you a `map[string]interface{}` of all the claims in the token.
 
 ```go
-//Geting the sub from the token
+// Getting the sub from the token
 sub := token.Claims["sub"]
 ```
 
