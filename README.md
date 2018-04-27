@@ -2,6 +2,11 @@
 
 This library helps you verify tokens that have been issued by Okta. To learn more about verification cases and Okta's tokens please read [Working With OAuth 2.0 Tokens](https://developer.okta.com/authentication-guide/tokens/)
 
+## :warning: :construction: Beta Preview :construction: :warning:
+
+This library is under development and is currently in 0.x version series.  Breaking changes may be introduced at minor versions in the 0.x range.  Please lock your dependency to a specific version until this library reaches 1.x.
+
+Need help? [Okta Developer Forum].
 
 ## Installation
 ```sh
@@ -70,3 +75,5 @@ jwtVerifierSetup := JwtVerifier{
 verifier := jwtVerifierSetup.New()
 verifier.SetLeeway({numberOfSeconds})
 ```
+
+[Okta Developer Forum]: https://devforum.okta.com/
