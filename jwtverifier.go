@@ -107,7 +107,7 @@ func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err.Error())
 	}
 
-	err = j.validateExp(token["iat"])
+	err = j.validateIat(token["iat"])
 	if err != nil {
 		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err.Error())
 	}
@@ -162,7 +162,7 @@ func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err.Error())
 	}
 
-	err = j.validateExp(token["iat"])
+	err = j.validateIat(token["iat"])
 	if err != nil {
 		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err.Error())
 	}
