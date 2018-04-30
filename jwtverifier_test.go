@@ -31,7 +31,6 @@ import (
 	"testing"
 	"time"
 	"log"
-	"fmt"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
