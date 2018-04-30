@@ -26,16 +26,16 @@ import github.com/okta/okta-jwt-verifier-golang
 
 toValidate := map[string]string{}
 toValidate["aud"] = "api://default"
-toValidate["cid"] = {{CLIENT_ID}}
+toValidate["cid"] = "{CLIENT_ID}"
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
-        Issuer: {{ISSUER}},
+        Issuer: "{ISSUER}",
         ClaimsToValidate: toValidate
 }
 
 verifier := jwtVerifierSetup.New()
 
-token, err := verifier.VerifyAccessToken({JWT})
+token, err := verifier.VerifyAccessToken("{JWT}")
 ```
 
 #### Id Token Validation
@@ -43,18 +43,18 @@ token, err := verifier.VerifyAccessToken({JWT})
 import github.com/okta/okta-jwt-verifier-golang
 
 toValidate := map[string]string{}
-toValidate["nonce"] = {{NONCE}}
-toValidate["aud"] = {{CLIENT_ID}}
+toValidate["nonce"] = "{NONCE}"
+toValidate["aud"] = "{CLIENT_ID}"
 
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
-        Issuer: {{ISSUER}},
+        Issuer: "{ISSUER}",
         ClaimsToValidate: toValidate
 }
 
 verifier := jwtVerifierSetup.New()
 
-token, err := verifier.VerifyIdToken({JWT})
+token, err := verifier.VerifyIdToken("{JWT}")
 ```
 
 This will either provide you with the token which gives you access to all the claims, or an error. The token struct contains a `Claims` property that will give you a `map[string]interface{}` of all the claims in the token.
@@ -69,11 +69,11 @@ We default to a PT2M clock skew adjustment in our validation.  If you need to ch
 
 ```go
 jwtVerifierSetup := JwtVerifier{
-        Issuer: {{ISSUER}},
+        Issuer: "{ISSUER}",
 }
 
 verifier := jwtVerifierSetup.New()
-verifier.SetLeeway({SECONDS})
+verifier.SetLeeway(60) // seconds
 ```
 
 [Okta Developer Forum]: https://devforum.okta.com/
