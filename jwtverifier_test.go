@@ -31,6 +31,7 @@ import (
 	"testing"
 	"time"
 	"log"
+	"fmt"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
@@ -390,7 +391,7 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	// Issue get request with session token to get id/access tokens
 	authzUri := os.Getenv("ISSUER") + "/v1/authorize?client_id=" + os.Getenv(
 		"CLIENT_ID") + "&nonce=" + nonce + "&redirect_uri=http://localhost:8080/implicit/callback" +
-		"&response_type=token&scope=openid&state" +
+		"&response_type=token%20id_token&scope=openid&state" +
 		"=ApplicationState&sessionToken=" + authn.SessionToken
 
 	client := &http.Client{
@@ -414,23 +415,48 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 		t.Errorf("could not extract access_token")
 	}
 
+	if fragmentParts["id_token"] == nil {
+		t.Errorf("could not extract id_token")
+	}
+
 	accessToken := fragmentParts["access_token"][0]
+	idToken := fragmentParts["id_token"][0]
 
 	tv := map[string]string{}
-	tv["aud"] = "api://default"
-	tv["cid"] = os.Getenv("CLIENT_ID")
+	tv["aud"] = os.Getenv("CLIENT_ID")
+	tv["nonce"] = nonce
 	jv := JwtVerifier{
 		Issuer:           os.Getenv("ISSUER"),
 		ClaimsToValidate: tv,
 	}
 
-	claims, err := jv.New().VerifyAccessToken(accessToken)
+	claims, err := jv.New().VerifyIdToken(idToken)
+
+	if err != nil {
+		t.Errorf("could not verify id_token: %s", err.Error())
+	}
+
+	issuer := claims.Claims["iss"]
+
+	if issuer == nil {
+		t.Errorf("issuer claim could not be pulled from access_token")
+	}
+
+	tv = map[string]string{}
+	tv["aud"] = "api://default"
+	tv["cid"] = os.Getenv("CLIENT_ID")
+	jv = JwtVerifier{
+		Issuer:           os.Getenv("ISSUER"),
+		ClaimsToValidate: tv,
+	}
+
+	claims, err = jv.New().VerifyAccessToken(accessToken)
 
 	if err != nil {
 		t.Errorf("could not verify access_token: %s", err.Error())
 	}
 
-	issuer := claims.Claims["iss"]
+	issuer = claims.Claims["iss"]
 
 	if issuer == nil {
 		t.Errorf("issuer claim could not be pulled from access_token")
