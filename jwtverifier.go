@@ -269,11 +269,13 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 	}
 
 	if len(jsonObject) < 2 {
-		return false, fmt.Errorf("the tokens header does not contain enough properties")
+		return false, fmt.Errorf("the tokens header does not contain enough properties. " +
+			"Should contain `alg` and `kid`")
 	}
 
 	if len(jsonObject) > 2 {
-		return false, fmt.Errorf("the tokens header contains too many properties")
+		return false, fmt.Errorf("the tokens header contains too many properties. " +
+			"Should only contain `alg` and `kid`")
 	}
 
 	_, algExists := jsonObject["alg"]
