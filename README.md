@@ -73,7 +73,7 @@ jwtVerifierSetup := JwtVerifier{
 }
 
 verifier := jwtVerifierSetup.New()
-verifier.SetLeeway({numberOfSeconds})
+verifier.SetLeeway({SECONDS})
 ```
 
 [Okta Developer Forum]: https://devforum.okta.com/
