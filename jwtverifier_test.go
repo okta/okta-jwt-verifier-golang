@@ -30,6 +30,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"log"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
@@ -351,6 +352,11 @@ func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T)
 
 func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	utils.ParseEnvironment()
+
+	if os.Getenv("ISSUER") == "" || os.Getenv("CLIENT_ID") == "" {
+		log.Printf("Skipping integration tests")
+		t.Skip("appears that environment variables are not set, skipping the integration test for now")
+	}
 
 	type AuthnResponse struct {
 		SessionToken string `json:"sessionToken"`
