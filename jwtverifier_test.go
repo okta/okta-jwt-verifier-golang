@@ -17,8 +17,15 @@
 package jwtverifier
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
+	"github.com/okta/okta-jwt-verifier-golang/utils"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -339,5 +346,87 @@ func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T)
 
 	if !strings.Contains(err.Error(), "only supported alg is RS256") {
 		t.Errorf("the error for access token with with wrong alg did not trigger")
+	}
+}
+
+func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
+	utils.ParseEnvironment()
+
+	type AuthnResponse struct {
+		SessionToken string `json:"sessionToken"`
+	}
+
+	nonce, err := utils.GenerateNonce()
+	if err != nil {
+		t.Errorf("could not generate nonce")
+	}
+
+	// Get Session Token
+	issuerParts, _ := url.Parse(os.Getenv("ISSUER"))
+	baseUrl := issuerParts.Scheme + "://" + issuerParts.Hostname()
+	requestUri := baseUrl + "/api/v1/authn"
+	postValues := map[string]string{"username": os.Getenv("USERNAME"), "password": os.Getenv("PASSWORD")}
+	postJsonValues, _ := json.Marshal(postValues)
+	resp, err := http.Post(requestUri, "application/json", bytes.NewReader(postJsonValues))
+
+	if err != nil {
+		t.Errorf("could not submit authentication endpoint")
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	var authn AuthnResponse
+	err = json.Unmarshal(body, &authn)
+	if err != nil {
+		t.Errorf("could not unmarshal authn response")
+	}
+
+	// Issue get request with session token to get id/access tokens
+	authzUri := os.Getenv("ISSUER") + "/v1/authorize?client_id=" + os.Getenv(
+		"CLIENT_ID") + "&nonce=" + nonce + "&redirect_uri=http://localhost:8080/implicit/callback" +
+		"&response_type=token&scope=openid&state" +
+		"=ApplicationState&sessionToken=" + authn.SessionToken
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, with []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err = client.Get(authzUri)
+
+	if err != nil {
+		t.Errorf("could not submit authorization endpoint: %s", err.Error())
+	}
+
+	defer resp.Body.Close()
+	location := resp.Header.Get("Location")
+	locParts, _ := url.Parse(location)
+	fragmentParts, _ := url.ParseQuery(locParts.Fragment)
+
+	if fragmentParts["access_token"] == nil {
+		t.Errorf("could not extract access_token")
+	}
+
+	accessToken := fragmentParts["access_token"][0]
+
+	tv := map[string]string{}
+	tv["aud"] = "api://default"
+	tv["cid"] = os.Getenv("CLIENT_ID")
+	jv := JwtVerifier{
+		Issuer:           os.Getenv("ISSUER"),
+		ClaimsToValidate: tv,
+	}
+
+	claims, err := jv.New().VerifyAccessToken(accessToken)
+
+	if err != nil {
+		t.Errorf("could not verify access_token: %s", err.Error())
+	}
+
+	issuer := claims.Claims["iss"]
+
+	if issuer == nil {
+		t.Errorf("issuer claim could not be pulled from access_token")
 	}
 }
