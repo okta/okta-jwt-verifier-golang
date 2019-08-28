@@ -25,11 +25,16 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/discovery"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
+	"github.com/patrickmn/go-cache"
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
+
+var metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
+var metaDataMu = &sync.Mutex{}
 
 type JwtVerifier struct {
 	Issuer string
@@ -228,6 +233,13 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
+	metaDataMu.Lock()
+	defer metaDataMu.Unlock()
+
+	if x, found := metaDataCache.Get(metaDataUrl); found {
+		return x.(map[string]interface{}), nil
+	}
+
 	resp, err := http.Get(metaDataUrl)
 
 	if err != nil {
@@ -238,6 +250,8 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 
 	md := make(map[string]interface{})
 	json.NewDecoder(resp.Body).Decode(&md)
+
+	metaDataCache.SetDefault(metaDataUrl, md)
 
 	return md, nil
 }
