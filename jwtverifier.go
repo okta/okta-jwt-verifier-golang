@@ -189,6 +189,9 @@ func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
 }
 
 func (j *JwtVerifier) validateNonce(nonce interface{}) error {
+	if nonce == nil {
+		nonce = ""
+	}
 	if nonce != j.ClaimsToValidate["nonce"] {
 		return fmt.Errorf("nonce: %s does not match %s", nonce, j.ClaimsToValidate["nonce"])
 	}
