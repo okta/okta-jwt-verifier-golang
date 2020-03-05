@@ -62,7 +62,7 @@ func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adap
 
 func Test_can_validate_iss_from_issuer_provided(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -78,7 +78,7 @@ func Test_can_validate_nonce(t *testing.T) {
 	tv["nonce"] = "abc123"
 
 	jvs := JwtVerifier{
-		Issuer:           "https://samples-test.oktapreview.com",
+		Issuer:           "https://golang.oktapreview.com",
 		ClaimsToValidate: tv,
 	}
 
@@ -95,7 +95,7 @@ func Test_can_validate_aud(t *testing.T) {
 	tv["aud"] = "abc123"
 
 	jvs := JwtVerifier{
-		Issuer:           "https://samples-test.oktapreview.com",
+		Issuer:           "https://golang.oktapreview.com",
 		ClaimsToValidate: tv,
 	}
 
@@ -112,7 +112,7 @@ func Test_can_validate_cid(t *testing.T) {
 	tv["cid"] = "abc123"
 
 	jvs := JwtVerifier{
-		Issuer:           "https://samples-test.oktapreview.com",
+		Issuer:           "https://golang.oktapreview.com",
 		ClaimsToValidate: tv,
 	}
 
@@ -126,7 +126,7 @@ func Test_can_validate_cid(t *testing.T) {
 
 func Test_can_validate_iat(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -146,7 +146,7 @@ func Test_can_validate_iat(t *testing.T) {
 
 func Test_can_validate_exp(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -167,7 +167,7 @@ func Test_can_validate_exp(t *testing.T) {
 // ID TOKEN TESTS
 func Test_invalid_formatting_of_id_token_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -185,7 +185,7 @@ func Test_invalid_formatting_of_id_token_throws_an_error(t *testing.T) {
 
 func Test_an_id_token_header_that_is_improperly_formatted_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -199,7 +199,7 @@ func Test_an_id_token_header_that_is_improperly_formatted_throws_an_error(t *tes
 
 func Test_an_id_token_header_that_is_not_decoded_into_json_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -213,7 +213,7 @@ func Test_an_id_token_header_that_is_not_decoded_into_json_throws_an_error(t *te
 
 func Test_an_id_token_header_that_is_not_contain_the_correct_parts_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -245,7 +245,7 @@ func Test_an_id_token_header_that_is_not_contain_the_correct_parts_throws_an_err
 
 func Test_an_id_token_header_that_is_not_rs256_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -260,7 +260,7 @@ func Test_an_id_token_header_that_is_not_rs256_throws_an_error(t *testing.T) {
 // ACCESS TOKEN TESTS
 func Test_invalid_formatting_of_access_token_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -278,7 +278,7 @@ func Test_invalid_formatting_of_access_token_throws_an_error(t *testing.T) {
 
 func Test_an_access_token_header_that_is_improperly_formatted_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -292,7 +292,7 @@ func Test_an_access_token_header_that_is_improperly_formatted_throws_an_error(t 
 
 func Test_an_access_token_header_that_is_not_decoded_into_json_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -306,7 +306,7 @@ func Test_an_access_token_header_that_is_not_decoded_into_json_throws_an_error(t
 
 func Test_an_access_token_header_that_is_not_contain_the_correct_parts_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -339,7 +339,7 @@ func Test_an_access_token_header_that_is_not_contain_the_correct_parts_throws_an
 
 func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T) {
 	jvs := JwtVerifier{
-		Issuer: "https://samples-test.oktapreview.com",
+		Issuer: "https://golang.oktapreview.com",
 	}
 
 	jv := jvs.New()
@@ -462,6 +462,7 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 		t.Errorf("issuer claim could not be pulled from access_token")
 	}
 
+	// Should validate without CID
 	tv = map[string]string{}
 	tv["aud"] = "api://default"
 	jv = JwtVerifier{
