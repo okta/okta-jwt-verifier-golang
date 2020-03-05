@@ -203,8 +203,9 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 }
 
 func (j *JwtVerifier) validateClientId(clientId interface{}) error {
-	if clientId != j.ClaimsToValidate["cid"] {
-		return fmt.Errorf("clientId: %s does not match %s", clientId, j.ClaimsToValidate["cid"])
+	// Client Id can be optional, it will be validated if it is present in the ClaimsToValidate array
+	if cid, exists := j.ClaimsToValidate["cid"]; exists && clientId != cid {
+		return fmt.Errorf("clientId: %s does not match %s", clientId, cid)
 	}
 	return nil
 }
