@@ -19,10 +19,8 @@ package jwtverifier
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
-	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
-	"github.com/okta/okta-jwt-verifier-golang/utils"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,7 +28,10 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"log"
+
+	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
+	"github.com/okta/okta-jwt-verifier-golang/utils"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
@@ -102,7 +103,7 @@ func Test_can_validate_aud(t *testing.T) {
 
 	err := jv.validateAudience("test")
 	if err == nil {
-		t.Errorf("the nonce validation did not trigger an error")
+		t.Errorf("the audience validation did not trigger an error")
 	}
 }
 
@@ -117,7 +118,7 @@ func Test_can_validate_cid(t *testing.T) {
 
 	jv := jvs.New()
 
-	err := jv.validateNonce("test")
+	err := jv.validateClientId("test")
 	if err == nil {
 		t.Errorf("the cid validation did not trigger an error")
 	}
@@ -444,6 +445,25 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	tv = map[string]string{}
 	tv["aud"] = "api://default"
 	tv["cid"] = os.Getenv("CLIENT_ID")
+	jv = JwtVerifier{
+		Issuer:           os.Getenv("ISSUER"),
+		ClaimsToValidate: tv,
+	}
+
+	claims, err = jv.New().VerifyAccessToken(accessToken)
+
+	if err != nil {
+		t.Errorf("could not verify access_token: %s", err.Error())
+	}
+
+	issuer = claims.Claims["iss"]
+
+	if issuer == nil {
+		t.Errorf("issuer claim could not be pulled from access_token")
+	}
+
+	tv = map[string]string{}
+	tv["aud"] = "api://default"
 	jv = JwtVerifier{
 		Issuer:           os.Getenv("ISSUER"),
 		ClaimsToValidate: tv,
