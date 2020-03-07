@@ -113,7 +113,6 @@ func getJWKSURI(metaDataUrl string) (string, error) {
 
 func getKid(token string) (string, error) {
 	header := strings.Split(token, ".")[0]
-	fmt.Println(header)
 
 	headerBts, err := ioutil.ReadAll(base64.NewDecoder(base64.RawURLEncoding, strings.NewReader(header)))
 	if err != nil {
