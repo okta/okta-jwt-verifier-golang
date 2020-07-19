@@ -25,16 +25,10 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/discovery"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
-	"github.com/patrickmn/go-cache"
-	"net/http"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 )
-
-var metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
-var metaDataMu = &sync.Mutex{}
 
 type JwtVerifier struct {
 	Issuer string
@@ -121,12 +115,12 @@ func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 }
 
 func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
-	metaData, err := j.getMetaData()
+	jwksUri, err := j.Discovery.GetJWKSUri(j.Issuer)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := j.Adaptor.Decode(jwt, metaData["jwks_uri"].(string))
+	resp, err := j.Adaptor.Decode(jwt, jwksUri)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not decode token: %s", err.Error())
@@ -229,32 +223,6 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 		return fmt.Errorf("iss: %s does not match %s", issuer, j.Issuer)
 	}
 	return nil
-}
-
-func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
-	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
-
-	metaDataMu.Lock()
-	defer metaDataMu.Unlock()
-
-	if x, found := metaDataCache.Get(metaDataUrl); found {
-		return x.(map[string]interface{}), nil
-	}
-
-	resp, err := http.Get(metaDataUrl)
-
-	if err != nil {
-		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
-	}
-
-	defer resp.Body.Close()
-
-	md := make(map[string]interface{})
-	json.NewDecoder(resp.Body).Decode(&md)
-
-	metaDataCache.SetDefault(metaDataUrl, md)
-
-	return md, nil
 }
 
 func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {

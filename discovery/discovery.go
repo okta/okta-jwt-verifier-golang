@@ -18,5 +18,5 @@ package discovery
 
 type Discovery interface {
 	New() Discovery
-	GetWellKnownUrl() string
+	GetJWKSUri(issuer string) (string, error)
 }
