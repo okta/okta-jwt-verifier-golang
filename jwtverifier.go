@@ -73,8 +73,9 @@ func (j *JwtVerifier) New() *JwtVerifier {
 	return j
 }
 
-func (j *JwtVerifier) SetLeeway(seconds int64) {
-	j.leeway = seconds
+func (j *JwtVerifier) SetLeeway(duration string) {
+	dur, _ := time.ParseDuration(duration)
+	j.leeway = dur.Milliseconds() / 1000
 }
 
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
