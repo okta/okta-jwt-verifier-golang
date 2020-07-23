@@ -264,7 +264,7 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 		return false, errors.JwtEmptyStringError()
 	}
 
-	// Verify that the JWT contains at least one period ('.') character.
+	// Verify that the JWT Follows correct JWT encoding.
 	var jwtRegex = regx.MatchString
 	if !jwtRegex(jwt) {
 		return false, fmt.Errorf("token must contain at least 1 period ('.') and only characters 'a-Z 0-9 _'")
