@@ -65,7 +65,7 @@ sub := token.Claims["sub"]
 ```
 
 #### Dealing with clock skew
-We default to a PT2M clock skew adjustment in our validation.  If you need to change this, you can use the `SetLeeway` method:
+We default to a two minute clock skew adjustment in our validation.  If you need to change this, you can use the `SetLeeway` method:
 
 ```go
 jwtVerifierSetup := JwtVerifier{
@@ -73,7 +73,7 @@ jwtVerifierSetup := JwtVerifier{
 }
 
 verifier := jwtVerifierSetup.New()
-verifier.SetLeeway(60) // seconds
+verifier.SetLeeway("2m") //String instance of time that will be parsed by `time.ParseDuration`
 ```
 
 [Okta Developer Forum]: https://devforum.okta.com/
