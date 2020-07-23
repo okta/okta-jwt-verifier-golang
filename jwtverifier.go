@@ -20,21 +20,23 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/discovery"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"github.com/patrickmn/go-cache"
-	"net/http"
-	"regexp"
-	"strings"
-	"sync"
-	"time"
 )
 
 var metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
 var metaDataMu = &sync.Mutex{}
+var regx = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`)
 
 type JwtVerifier struct {
 	Issuer string
@@ -262,8 +264,8 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 		return false, errors.JwtEmptyStringError()
 	}
 
-	// Verify that the JWT contains at least one period ('.') character.
-	var jwtRegex = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`).MatchString
+	// Verify that the JWT Follows correct JWT encoding.
+	var jwtRegex = regx.MatchString
 	if !jwtRegex(jwt) {
 		return false, fmt.Errorf("token must contain at least 1 period ('.') and only characters 'a-Z 0-9 _'")
 	}
