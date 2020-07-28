@@ -30,7 +30,7 @@ toValidate["cid"] = "{CLIENT_ID}"
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: "{ISSUER}",
-        ClaimsToValidate: toValidate
+        ClaimsToValidate: toValidate,
 }
 
 verifier := jwtVerifierSetup.New()
