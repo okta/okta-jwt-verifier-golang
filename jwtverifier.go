@@ -199,9 +199,23 @@ func (j *JwtVerifier) validateNonce(nonce interface{}) error {
 }
 
 func (j *JwtVerifier) validateAudience(audience interface{}) error {
-	if audience != j.ClaimsToValidate["aud"] {
-		return fmt.Errorf("aud: %s does not match %s", audience, j.ClaimsToValidate["aud"])
+
+	switch v := audience.(type) {
+	case string:
+		if v != j.ClaimsToValidate["aud"] {
+			return fmt.Errorf("aud: %s does not match %s", v, j.ClaimsToValidate["aud"])
+		}
+	case []string:
+		for _, element := range v {
+			if element == j.ClaimsToValidate["aud"] {
+				return nil
+			}
+		}
+		return fmt.Errorf("aud: %s does not match %s", v, j.ClaimsToValidate["aud"])
+	default:
+		return fmt.Errorf("Unknown type for audience validation")
 	}
+
 	return nil
 }
 
