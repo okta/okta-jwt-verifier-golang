@@ -222,7 +222,23 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 	// Client Id can be optional, it will be validated if it is present in the ClaimsToValidate array
 	if cid, exists := j.ClaimsToValidate["cid"]; exists && clientId != cid {
-		return fmt.Errorf("clientId: %s does not match %s", clientId, cid)
+
+		switch v := clientId.(type) {
+		case string:
+			if v != cid {
+				return fmt.Errorf("aud: %s does not match %s", v, cid)
+			}
+		case []string:
+			for _, element := range v {
+				if element == cid {
+					return nil
+				}
+			}
+			return fmt.Errorf("aud: %s does not match %s", v, cid)
+		default:
+			return fmt.Errorf("Unknown type for clientId validation")
+		}
+
 	}
 	return nil
 }
