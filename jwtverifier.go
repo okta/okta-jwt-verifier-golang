@@ -192,6 +192,10 @@ func (j *JwtVerifier) GetAdaptor() adaptors.Adaptor {
 }
 
 func (j *JwtVerifier) validateNonce(nonce interface{}) error {
+	if nonce == nil {
+		nonce = ""
+	}
+
 	if nonce != j.ClaimsToValidate["nonce"] {
 		return fmt.Errorf("nonce: %s does not match %s", nonce, j.ClaimsToValidate["nonce"])
 	}
@@ -228,14 +232,22 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 }
 
 func (j *JwtVerifier) validateExp(exp interface{}) error {
-	if float64(time.Now().Unix()-j.leeway) > exp.(float64) {
+	expf, ok := exp.(float64)
+	if !ok {
+		return fmt.Errorf("exp: missing")
+	}
+	if float64(time.Now().Unix()-j.leeway) > expf {
 		return fmt.Errorf("the token is expired")
 	}
 	return nil
 }
 
 func (j *JwtVerifier) validateIat(iat interface{}) error {
-	if float64(time.Now().Unix()+j.leeway) < iat.(float64) {
+	iatf, ok := iat.(float64)
+	if !ok {
+		return fmt.Errorf("iat: missing")
+	}
+	if float64(time.Now().Unix()+j.leeway) < iatf {
 		return fmt.Errorf("the token was issued in the future")
 	}
 	return nil
