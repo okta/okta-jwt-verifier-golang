@@ -2,11 +2,15 @@
 
 This library helps you verify tokens that have been issued by Okta. To learn more about verification cases and Okta's tokens please read [Working With OAuth 2.0 Tokens](https://developer.okta.com/authentication-guide/tokens/)
 
-## :warning: :construction: Beta Preview :construction: :warning:
+## Release status
 
-This library is under development and is currently in 0.x version series.  Breaking changes may be introduced at minor versions in the 0.x range.  Please lock your dependency to a specific version until this library reaches 1.x.
+This library uses semantic versioning and follows Okta's [library version policy](https://developer.okta.com/code/library-versions/).
 
-Need help? [Okta Developer Forum].
+| Version | Status                             |
+| ------- | ---------------------------------- |
+| 0.x     |  :warning: Beta Release (Retired)  |
+| 1.x     |  :heavy_check_mark: Release        |
+
 
 ## Installation
 ```sh
@@ -30,7 +34,7 @@ toValidate["cid"] = "{CLIENT_ID}"
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: "{ISSUER}",
-        ClaimsToValidate: toValidate
+        ClaimsToValidate: toValidate,
 }
 
 verifier := jwtVerifierSetup.New()
@@ -49,7 +53,7 @@ toValidate["aud"] = "{CLIENT_ID}"
 
 jwtVerifierSetup := jwtverifier.JwtVerifier{
         Issuer: "{ISSUER}",
-        ClaimsToValidate: toValidate
+        ClaimsToValidate: toValidate,
 }
 
 verifier := jwtVerifierSetup.New()
