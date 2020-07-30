@@ -34,7 +34,6 @@ func ParseEnvironment() {
 	setEnvVariable("ISSUER", os.Getenv("ISSUER"))
 	setEnvVariable("USERNAME", os.Getenv("USERNAME"))
 	setEnvVariable("PASSWORD", os.Getenv("PASSWORD"))
-	log.Printf(os.Getenv("USERNAME"))
 	if os.Getenv("CLIENT_ID") == "" {
 		log.Printf("Could not resolve a CLIENT_ID environment variable.")
 		os.Exit(1)
