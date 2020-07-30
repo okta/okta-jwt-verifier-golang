@@ -32,6 +32,11 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
 	"github.com/patrickmn/go-cache"
+	"net/http"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
 )
 
 var metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
