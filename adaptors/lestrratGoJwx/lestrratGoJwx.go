@@ -17,13 +17,15 @@
 package lestrratGoJwx
 
 import (
+	"context"
 	"encoding/json"
+	"sync"
+	"time"
+
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
 	"github.com/patrickmn/go-cache"
-	"sync"
-	"time"
 )
 
 var jwkSetCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
@@ -37,7 +39,7 @@ func getJwkSet(jwkUri string) (*jwk.Set, error) {
 		return x.(*jwk.Set), nil
 	}
 
-	jwkSet, err := jwk.FetchHTTP(jwkUri)
+	jwkSet, err := jwk.Fetch(context.Background(), jwkUri)
 
 	if err != nil {
 		return nil, err
@@ -45,7 +47,7 @@ func getJwkSet(jwkUri string) (*jwk.Set, error) {
 
 	jwkSetCache.SetDefault(jwkUri, jwkSet)
 
-	return jwkSet, nil
+	return &jwkSet, nil
 }
 
 type LestrratGoJwx struct {
@@ -67,7 +69,7 @@ func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) 
 		return nil, err
 	}
 
-	token, err := jws.VerifyWithJWKSet([]byte(jwt), jwkSet, nil)
+	token, err := jws.VerifySet([]byte(jwt), *jwkSet)
 
 	if err != nil {
 		return nil, err
