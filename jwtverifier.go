@@ -128,8 +128,11 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	resp, err := j.Adaptor.Decode(jwt, metaData["jwks_uri"].(string))
+	jwksURI, ok := metaData["jwks_uri"].(string)
+	if !ok {
+		return nil, fmt.Errorf("failed to decode JWT: missing 'jwks_uri' from metadata")
+	}
+	resp, err := j.Adaptor.Decode(jwt, jwksURI)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not decode token: %s", err.Error())
