@@ -218,19 +218,7 @@ func Test_an_id_token_header_that_is_not_contain_the_correct_parts_throws_an_err
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIg0KfQ.aa.aa")
-
-	if !strings.Contains(err.Error(), "header does not contain enough properties") {
-		t.Errorf("the error for id token with header that does not contain enough properties did not trigger")
-	}
-
-	_, err = jv.VerifyIdToken("ew0KICAidGVzdCI6ICJ0aGlzIiwNCiAgImFuZCI6ICJ0aGlzIiwNCiAgImhlbGxvIjogIndvcmxkIg0KfQ.aa.aa")
-
-	if !strings.Contains(err.Error(), "header contains too many properties") {
-		t.Errorf("the error for id token with header that contains too many properties did not trigger")
-	}
-
-	_, err = jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
+	_, err := jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
 
 	if !strings.Contains(err.Error(), "header must contain an 'alg'") {
 		t.Errorf("the error for id token with header that did not contain alg did not trigger")
@@ -311,20 +299,7 @@ func Test_an_access_token_header_that_is_not_contain_the_correct_parts_throws_an
 
 	jv := jvs.New()
 
-	_, err := jv.VerifyAccessToken("ew0KICAidGVzdCI6ICJ0aGlzIg0KfQ.aa.aa")
-
-	if !strings.Contains(err.Error(), "header does not contain enough properties") {
-		t.Errorf("the error for access token with header that does not contain enough properties did not" +
-			" trigger")
-	}
-
-	_, err = jv.VerifyAccessToken("ew0KICAidGVzdCI6ICJ0aGlzIiwNCiAgImFuZCI6ICJ0aGlzIiwNCiAgImhlbGxvIjogIndvcmxkIg0KfQ.aa.aa")
-
-	if !strings.Contains(err.Error(), "header contains too many properties") {
-		t.Errorf("the error for access token with header that contains too many properties did not trigger")
-	}
-
-	_, err = jv.VerifyAccessToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
+	_, err := jv.VerifyAccessToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
 
 	if !strings.Contains(err.Error(), "header must contain an 'alg'") {
 		t.Errorf("the error for access token with header that did not contain alg did not trigger")
