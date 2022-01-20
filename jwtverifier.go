@@ -219,6 +219,17 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 			}
 		}
 		return fmt.Errorf("aud: %s does not match %s", v, j.ClaimsToValidate["aud"])
+	case []interface{}:
+		for _, e := range v {
+			element, ok := e.(string)
+			if !ok {
+				return fmt.Errorf("Unknown type for audience validation")
+			}
+			if element == j.ClaimsToValidate["aud"] {
+				return nil
+			}
+		}
+		return fmt.Errorf("aud: %s does not match %s", v, j.ClaimsToValidate["aud"])
 	default:
 		return fmt.Errorf("Unknown type for audience validation")
 	}
