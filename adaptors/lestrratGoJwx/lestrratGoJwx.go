@@ -28,8 +28,10 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-var jwkSetCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
-var jwkSetMu = &sync.Mutex{}
+var (
+	jwkSetCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
+	jwkSetMu                 = &sync.Mutex{}
+)
 
 func getJwkSet(jwkUri string) (jwk.Set, error) {
 	jwkSetMu.Lock()
@@ -39,7 +41,6 @@ func getJwkSet(jwkUri string) (jwk.Set, error) {
 		return x.(jwk.Set), nil
 	}
 	jwkSet, err := jwk.Fetch(context.Background(), jwkUri)
-
 	if err != nil {
 		return nil, err
 	}
@@ -58,17 +59,14 @@ func (lgj LestrratGoJwx) New() adaptors.Adaptor {
 }
 
 func (lgj LestrratGoJwx) GetKey(jwkUri string) {
-	return
 }
 
 func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
 	jwkSet, err := getJwkSet(jwkUri)
-
 	if err != nil {
 		return nil, err
 	}
 	token, err := jws.VerifySet([]byte(jwt), jwkSet)
-
 	if err != nil {
 		return nil, err
 	}
@@ -78,5 +76,4 @@ func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) 
 	json.Unmarshal(token, &claims)
 
 	return claims, nil
-
 }

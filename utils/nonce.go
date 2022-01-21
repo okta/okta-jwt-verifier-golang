@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"fmt"
-	"encoding/base64"
 	"crypto/rand"
+	"encoding/base64"
+	"fmt"
 )
 
 func GenerateNonce() (string, error) {

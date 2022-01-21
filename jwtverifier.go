@@ -34,9 +34,11 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-var metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
-var metaDataMu = &sync.Mutex{}
-var regx = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`)
+var (
+	metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
+	metaDataMu                 = &sync.Mutex{}
+	regx                       = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`)
+)
 
 type JwtVerifier struct {
 	Issuer string
@@ -80,7 +82,7 @@ func (j *JwtVerifier) SetLeeway(duration string) {
 
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
-	if validJwt == false {
+	if !validJwt {
 		return nil, fmt.Errorf("token is not valid: %s", err.Error())
 	}
 
@@ -133,7 +135,6 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 		return nil, fmt.Errorf("failed to decode JWT: missing 'jwks_uri' from metadata")
 	}
 	resp, err := j.Adaptor.Decode(jwt, jwksURI)
-
 	if err != nil {
 		return nil, fmt.Errorf("could not decode token: %s", err.Error())
 	}
@@ -143,7 +144,7 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 
 func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
-	if validJwt == false {
+	if !validJwt {
 		return nil, fmt.Errorf("token is not valid: %s", err.Error())
 	}
 
@@ -206,7 +207,6 @@ func (j *JwtVerifier) validateNonce(nonce interface{}) error {
 }
 
 func (j *JwtVerifier) validateAudience(audience interface{}) error {
-
 	switch v := audience.(type) {
 	case string:
 		if v != j.ClaimsToValidate["aud"] {
@@ -223,7 +223,7 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 		for _, e := range v {
 			element, ok := e.(string)
 			if !ok {
-				return fmt.Errorf("Unknown type for audience validation")
+				return fmt.Errorf("unknown type for audience validation")
 			}
 			if element == j.ClaimsToValidate["aud"] {
 				return nil
@@ -231,7 +231,7 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 		}
 		return fmt.Errorf("aud: %s does not match %s", v, j.ClaimsToValidate["aud"])
 	default:
-		return fmt.Errorf("Unknown type for audience validation")
+		return fmt.Errorf("unknown type for audience validation")
 	}
 
 	return nil
@@ -240,7 +240,6 @@ func (j *JwtVerifier) validateAudience(audience interface{}) error {
 func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 	// Client Id can be optional, it will be validated if it is present in the ClaimsToValidate array
 	if cid, exists := j.ClaimsToValidate["cid"]; exists && clientId != cid {
-
 		switch v := clientId.(type) {
 		case string:
 			if v != cid {
@@ -254,9 +253,8 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 			}
 			return fmt.Errorf("aud: %s does not match %s", v, cid)
 		default:
-			return fmt.Errorf("Unknown type for clientId validation")
+			return fmt.Errorf("unknown type for clientId validation")
 		}
-
 	}
 	return nil
 }
@@ -301,7 +299,6 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	}
 
 	resp, err := http.Get(metaDataUrl)
-
 	if err != nil {
 		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
 	}
@@ -322,7 +319,7 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 	}
 
 	// Verify that the JWT Follows correct JWT encoding.
-	var jwtRegex = regx.MatchString
+	jwtRegex := regx.MatchString
 	if !jwtRegex(jwt) {
 		return false, fmt.Errorf("token must contain at least 1 period ('.') and only characters 'a-Z 0-9 _'")
 	}
@@ -331,14 +328,13 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 	header := parts[0]
 	header = padHeader(header)
 	headerDecoded, err := base64.StdEncoding.DecodeString(header)
-
 	if err != nil {
 		return false, fmt.Errorf("the tokens header does not appear to be a base64 encoded string")
 	}
 
 	var jsonObject map[string]interface{}
 	isHeaderJson := json.Unmarshal([]byte(headerDecoded), &jsonObject) == nil
-	if isHeaderJson == false {
+	if !isHeaderJson {
 		return false, fmt.Errorf("the tokens header is not a json object")
 	}
 
@@ -359,6 +355,7 @@ func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
 
 	return true, nil
 }
+
 func padHeader(header string) string {
 	if i := len(header) % 4; i != 0 {
 		header += strings.Repeat("=", 4-i)
