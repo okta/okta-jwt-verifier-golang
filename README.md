@@ -81,3 +81,23 @@ verifier.SetLeeway("2m") //String instance of time that will be parsed by `time.
 ```
 
 [Okta Developer Forum]: https://devforum.okta.com/
+
+## Testing
+
+If you create a PR from a fork of okta/okta-jwt-verifier-golang the build for
+the PR will fail. Don't worry, we'll bring your commits into a review branch in
+okta/okta-jwt-verifier-golang and get a green build.
+
+jwtverifier_test.go expects environment variables for `ISSUER`, `CLIENT_ID`,
+`USERNAME`, and `PASSWORD` to be present. Take note if you use zshell as
+`USERSNAME` is a special environment variable and is not settable. Therefore
+tests shouldn't be run in zshell.
+
+`USERNAME` and `PASSWORD` are for a user with access to the test app associated
+with `CLIENT_ID`. The test app should not have 2FA enabled and allow password
+login. The General Settings for the test app should have Application Grant type
+with Implicit (hybrid) enabled.
+
+```
+go test -test.v
+```

@@ -18,7 +18,7 @@ package oidc
 
 import "github.com/okta/okta-jwt-verifier-golang/discovery"
 
-type Oidc struct{
+type Oidc struct {
 	wellKnownUrl string
 }
 

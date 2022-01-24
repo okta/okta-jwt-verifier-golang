@@ -350,12 +350,11 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	postValues := map[string]string{"username": os.Getenv("USERNAME"), "password": os.Getenv("PASSWORD")}
 	postJsonValues, _ := json.Marshal(postValues)
 	resp, err := http.Post(requestUri, "application/json", bytes.NewReader(postJsonValues))
-
 	if err != nil {
 		t.Errorf("could not submit authentication endpoint")
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	var authn AuthnResponse
 	err = json.Unmarshal(body, &authn)
@@ -406,7 +405,6 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	}
 
 	claims, err := jv.New().VerifyIdToken(idToken)
-
 	if err != nil {
 		t.Errorf("could not verify id_token: %s", err.Error())
 	}
