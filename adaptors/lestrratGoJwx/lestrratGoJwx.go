@@ -19,39 +19,18 @@ package lestrratGoJwx
 import (
 	"context"
 	"encoding/json"
-	"sync"
+	"errors"
 	"time"
 
+	"github.com/karrick/goswarm"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
-	"github.com/patrickmn/go-cache"
 )
-
-var (
-	jwkSetCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
-	jwkSetMu                 = &sync.Mutex{}
-)
-
-func getJwkSet(jwkUri string) (jwk.Set, error) {
-	jwkSetMu.Lock()
-	defer jwkSetMu.Unlock()
-
-	if x, found := jwkSetCache.Get(jwkUri); found {
-		return x.(jwk.Set), nil
-	}
-	jwkSet, err := jwk.Fetch(context.Background(), jwkUri)
-	if err != nil {
-		return nil, err
-	}
-
-	jwkSetCache.SetDefault(jwkUri, jwkSet)
-
-	return jwkSet, nil
-}
 
 type LestrratGoJwx struct {
 	JWKSet jwk.Set
+	cache  *goswarm.Simple
 }
 
 func (lgj LestrratGoJwx) New() adaptors.Adaptor {
@@ -62,10 +41,30 @@ func (lgj LestrratGoJwx) GetKey(jwkUri string) {
 }
 
 func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
-	jwkSet, err := getJwkSet(jwkUri)
+	if lgj.cache == nil {
+		cache, err := goswarm.NewSimple(&goswarm.Config{
+			GoodStaleDuration:  5 * time.Minute,
+			GoodExpiryDuration: 10 * time.Minute,
+			Lookup: func(url string) (interface{}, error) {
+				return jwk.Fetch(context.Background(), url)
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		lgj.cache = cache
+	}
+
+	value, err := lgj.cache.Query(jwkUri)
 	if err != nil {
 		return nil, err
 	}
+
+	jwkSet, ok := value.(jwk.Set)
+	if !ok {
+		return nil, errors.New("unable to fetch JWK Set")
+	}
+
 	token, err := jws.VerifySet([]byte(jwt), jwkSet)
 	if err != nil {
 		return nil, err
@@ -73,7 +72,9 @@ func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) 
 
 	var claims interface{}
 
-	json.Unmarshal(token, &claims)
+	if err := json.Unmarshal(token, &claims); err != nil {
+		return nil, err
+	}
 
 	return claims, nil
 }
