@@ -26,7 +26,7 @@ This library was built to keep configuration to a minimum. To get it running at 
 
 #### Access Token Validation
 ```go
-import github.com/okta/okta-jwt-verifier-golang
+import "github.com/okta/okta-jwt-verifier-golang"
 
 toValidate := map[string]string{}
 toValidate["aud"] = "api://default"
@@ -44,7 +44,7 @@ token, err := verifier.VerifyAccessToken("{JWT}")
 
 #### Id Token Validation
 ```go
-import github.com/okta/okta-jwt-verifier-golang
+import "github.com/okta/okta-jwt-verifier-golang"
 
 toValidate := map[string]string{}
 toValidate["nonce"] = "{NONCE}"

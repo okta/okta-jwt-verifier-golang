@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
@@ -31,13 +30,11 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/discovery"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/errors"
-	"github.com/patrickmn/go-cache"
+	"github.com/okta/okta-jwt-verifier-golang/utils"
 )
 
 var (
-	metaDataCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
-	metaDataMu                 = &sync.Mutex{}
-	regx                       = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`)
+	regx = regexp.MustCompile(`[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.?([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$`)
 )
 
 type JwtVerifier struct {
@@ -49,11 +46,30 @@ type JwtVerifier struct {
 
 	Adaptor adaptors.Adaptor
 
+	// Cache allows customization of the cache used to store resources
+	Cache func(func(string) (interface{}, error)) (utils.Cacher, error)
+
+	metadataCache utils.Cacher
+
 	leeway int64
 }
 
 type Jwt struct {
 	Claims map[string]interface{}
+}
+
+func fetchMetaData(url string) (interface{}, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
+	}
+	defer resp.Body.Close()
+
+	metadata := make(map[string]interface{})
+	if err := json.NewDecoder(resp.Body).Decode(&metadata); err != nil {
+		return nil, err
+	}
+	return metadata, nil
 }
 
 func (j *JwtVerifier) New() *JwtVerifier {
@@ -63,9 +79,13 @@ func (j *JwtVerifier) New() *JwtVerifier {
 		j.Discovery = disc.New()
 	}
 
+	if j.Cache == nil {
+		j.Cache = utils.NewDefaultCache
+	}
+
 	// Default to LestrratGoJwx Adaptor if none is defined
 	if j.Adaptor == nil {
-		adaptor := lestrratGoJwx.LestrratGoJwx{}
+		adaptor := &lestrratGoJwx.LestrratGoJwx{Cache: j.Cache}
 		j.Adaptor = adaptor.New()
 	}
 
@@ -291,26 +311,24 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
-	metaDataMu.Lock()
-	defer metaDataMu.Unlock()
-
-	if x, found := metaDataCache.Get(metaDataUrl); found {
-		return x.(map[string]interface{}), nil
+	if j.metadataCache == nil {
+		metadataCache, err := j.Cache(fetchMetaData)
+		if err != nil {
+			return nil, err
+		}
+		j.metadataCache = metadataCache
 	}
 
-	resp, err := http.Get(metaDataUrl)
+	value, err := j.metadataCache.Get(metaDataUrl)
 	if err != nil {
-		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
+		return nil, err
 	}
 
-	defer resp.Body.Close()
-
-	md := make(map[string]interface{})
-	json.NewDecoder(resp.Body).Decode(&md)
-
-	metaDataCache.SetDefault(metaDataUrl, md)
-
-	return md, nil
+	metadata, ok := value.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unable to cast %v to metadata", value)
+	}
+	return metadata, nil
 }
 
 func (j *JwtVerifier) isValidJwt(jwt string) (bool, error) {
