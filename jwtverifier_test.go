@@ -54,7 +54,7 @@ func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adap
 
 	jv := jvs.New()
 
-	if reflect.TypeOf(jv.GetAdaptor()) != reflect.TypeOf(lestrratGoJwx.LestrratGoJwx{}) {
+	if reflect.TypeOf(jv.GetAdaptor()) != reflect.TypeOf(&lestrratGoJwx.LestrratGoJwx{}) {
 		t.Errorf("adaptor did not set to lestrratGoJwx by default.  Was set to: %s",
 			reflect.TypeOf(jv.GetAdaptor()))
 	}

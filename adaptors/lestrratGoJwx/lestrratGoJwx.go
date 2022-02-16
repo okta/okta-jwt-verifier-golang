@@ -19,61 +19,63 @@ package lestrratGoJwx
 import (
 	"context"
 	"encoding/json"
-	"sync"
-	"time"
+	"fmt"
 
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/okta/okta-jwt-verifier-golang/adaptors"
-	"github.com/patrickmn/go-cache"
+	"github.com/okta/okta-jwt-verifier-golang/utils"
 )
 
-var (
-	jwkSetCache *cache.Cache = cache.New(5*time.Minute, 10*time.Minute)
-	jwkSetMu                 = &sync.Mutex{}
-)
-
-func getJwkSet(jwkUri string) (jwk.Set, error) {
-	jwkSetMu.Lock()
-	defer jwkSetMu.Unlock()
-
-	if x, found := jwkSetCache.Get(jwkUri); found {
-		return x.(jwk.Set), nil
-	}
-	jwkSet, err := jwk.Fetch(context.Background(), jwkUri)
-	if err != nil {
-		return nil, err
-	}
-
-	jwkSetCache.SetDefault(jwkUri, jwkSet)
-
-	return jwkSet, nil
+func fetchJwkSet(jwkUri string) (interface{}, error) {
+	return jwk.Fetch(context.Background(), jwkUri)
 }
 
 type LestrratGoJwx struct {
-	JWKSet jwk.Set
+	JWKSet      jwk.Set
+	Cache       func(func(string) (interface{}, error)) (utils.Cacher, error)
+	jwkSetCache utils.Cacher
 }
 
-func (lgj LestrratGoJwx) New() adaptors.Adaptor {
+func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
+	if lgj.Cache == nil {
+		lgj.Cache = utils.NewDefaultCache
+	}
+
 	return lgj
 }
 
-func (lgj LestrratGoJwx) GetKey(jwkUri string) {
+func (lgj *LestrratGoJwx) GetKey(jwkUri string) {
 }
 
-func (lgj LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
-	jwkSet, err := getJwkSet(jwkUri)
+func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
+	if lgj.jwkSetCache == nil {
+		jwkSetCache, err := lgj.Cache(fetchJwkSet)
+		if err != nil {
+			return nil, err
+		}
+		lgj.jwkSetCache = jwkSetCache
+	}
+
+	value, err := lgj.jwkSetCache.Get(jwkUri)
 	if err != nil {
 		return nil, err
 	}
+
+	jwkSet, ok := value.(jwk.Set)
+	if !ok {
+		return nil, fmt.Errorf("could not cast %v to jwk.Set", value)
+	}
+
 	token, err := jws.VerifySet([]byte(jwt), jwkSet)
 	if err != nil {
 		return nil, err
 	}
 
 	var claims interface{}
-
-	json.Unmarshal(token, &claims)
+	if err := json.Unmarshal(token, &claims); err != nil {
+		return nil, fmt.Errorf("could not unmarshal claims: %s", err.Error())
+	}
 
 	return claims, nil
 }
