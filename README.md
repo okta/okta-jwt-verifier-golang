@@ -80,7 +80,26 @@ verifier := jwtVerifierSetup.New()
 verifier.SetLeeway("2m") //String instance of time that will be parsed by `time.ParseDuration`
 ```
 
-[Okta Developer Forum]: https://devforum.okta.com/
+#### Customizable Resource Cache
+
+The verifier setup has a default cache based on
+[`patrickmn/go-cache`](https://github.com/patrickmn/go-cache) with a 5 minute
+expiry and 10 minute purge setting that is used to store resources fetched over
+HTTP. It also defines a `Cacher` interface with a `Get` method allowing
+customization of that caching. If you want to establish your own caching
+strategy then provide your own `Cacher` object that implements that interface.
+Your custom cache is set in the verifier via the `Cache` attribute.  See the
+example in the [cache example test](utils/cache_example_test.go) that shows a
+"forever" cache (that one would never use in production ...)
+
+```go
+jwtVerifierSetup := jwtverifier.JwtVerifier{
+    Cache: NewForeverCache,
+    // other fields here
+}
+
+verifier := jwtVerifierSetup.New()
+```
 
 ## Testing
 
@@ -101,3 +120,4 @@ with Implicit (hybrid) enabled.
 ```
 go test -test.v
 ```
+
