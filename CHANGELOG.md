@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.1 (February 16, 2022)
+
+### Updates
+
+* Update JWX package. Thanks, [@thomassampson](https://github.com/thomassampson)!
+
 ## v1.2.0 (February 16, 2022)
 
 ### Updates
@@ -11,7 +17,7 @@
 
 ### Updates
 
-- Fixed edge cause with `aud` claim that would not find Auth0 being JWTs valid (thank you @awrenn).
+- Fixed edge cause with `aud` claim that would not find Auth0 being JWTs valid. Thanks [@awrenn](https://github.com/awrenn)!
 - Updated readme with testing notes.
 - Ran `gofumpt` on code for clean up.
 
