@@ -61,7 +61,7 @@ type Jwt struct {
 func fetchMetaData(url string) (interface{}, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("request for metadata was not successful: %s", err.Error())
+		return nil, fmt.Errorf("request for metadata was not successful: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -103,7 +103,7 @@ func (j *JwtVerifier) SetLeeway(duration string) {
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
 	if !validJwt {
-		return nil, fmt.Errorf("token is not valid: %s", err.Error())
+		return nil, fmt.Errorf("token is not valid: %w", err)
 	}
 
 	resp, err := j.decodeJwt(jwt)
@@ -119,27 +119,27 @@ func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
 
 	err = j.validateIss(token["iss"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %w", err)
 	}
 
 	err = j.validateAudience(token["aud"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %w", err)
 	}
 
 	err = j.validateClientId(token["cid"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Client Id` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Client Id` was not able to be validated. %w", err)
 	}
 
 	err = j.validateExp(token["exp"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %w", err)
 	}
 
 	err = j.validateIat(token["iat"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %w", err)
 	}
 
 	return &myJwt, nil
@@ -156,7 +156,7 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 	}
 	resp, err := j.Adaptor.Decode(jwt, jwksURI)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode token: %s", err.Error())
+		return nil, fmt.Errorf("could not decode token: %w", err)
 	}
 
 	return resp, nil
@@ -165,7 +165,7 @@ func (j *JwtVerifier) decodeJwt(jwt string) (interface{}, error) {
 func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 	validJwt, err := j.isValidJwt(jwt)
 	if !validJwt {
-		return nil, fmt.Errorf("token is not valid: %s", err.Error())
+		return nil, fmt.Errorf("token is not valid: %w", err)
 	}
 
 	resp, err := j.decodeJwt(jwt)
@@ -181,27 +181,27 @@ func (j *JwtVerifier) VerifyIdToken(jwt string) (*Jwt, error) {
 
 	err = j.validateIss(token["iss"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Issuer` was not able to be validated. %w", err)
 	}
 
 	err = j.validateAudience(token["aud"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Audience` was not able to be validated. %w", err)
 	}
 
 	err = j.validateExp(token["exp"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Expiration` was not able to be validated. %w", err)
 	}
 
 	err = j.validateIat(token["iat"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Issued At` was not able to be validated. %w", err)
 	}
 
 	err = j.validateNonce(token["nonce"])
 	if err != nil {
-		return &myJwt, fmt.Errorf("the `Nonce` was not able to be validated. %s", err.Error())
+		return &myJwt, fmt.Errorf("the `Nonce` was not able to be validated. %w", err)
 	}
 
 	return &myJwt, nil

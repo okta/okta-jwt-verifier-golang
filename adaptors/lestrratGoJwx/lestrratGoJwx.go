@@ -74,7 +74,7 @@ func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error)
 
 	var claims interface{}
 	if err := json.Unmarshal(token, &claims); err != nil {
-		return nil, fmt.Errorf("could not unmarshal claims: %s", err.Error())
+		return nil, fmt.Errorf("could not unmarshal claims: %w", err)
 	}
 
 	return claims, nil
