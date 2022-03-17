@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// GenerateNonce generates a random base64 encoded string suitable for OpenID nonce
 func GenerateNonce() (string, error) {
 	nonceBytes := make([]byte, 32)
 	_, err := rand.Read(nonceBytes)
