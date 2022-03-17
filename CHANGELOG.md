@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0 (March 17th, 2022)
+
+### Enhancements:
+
+* New PCKE code verifier utility. [#81](https://github.com/okta/okta-jwt-verifier-golang/pull/81). Thanks, [@deepu105](https://github.com/deepu105)!
+
 ## v1.2.1 (February 16, 2022)
 
 ### Updates
