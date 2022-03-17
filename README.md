@@ -6,13 +6,13 @@ This library helps you verify tokens that have been issued by Okta. To learn mor
 
 This library uses semantic versioning and follows Okta's [library version policy](https://developer.okta.com/code/library-versions/).
 
-| Version | Status                             |
-| ------- | ---------------------------------- |
-| 0.x     |  :warning: Beta Release (Retired)  |
-| 1.x     |  :heavy_check_mark: Release        |
-
+| Version | Status                           |
+| ------- | -------------------------------- |
+| 0.x     | :warning: Beta Release (Retired) |
+| 1.x     | :heavy_check_mark: Release       |
 
 ## Installation
+
 ```sh
 go get -u github.com/okta/okta-jwt-verifier-golang
 ```
@@ -21,10 +21,11 @@ go get -u github.com/okta/okta-jwt-verifier-golang
 
 This library was built to keep configuration to a minimum. To get it running at its most basic form, all you need to provide is the the following information:
 
-- **Issuer** - This is the URL of the authorization server that will perform authentication.  All Developer Accounts have a "default" authorization server.  The issuer is a combination of your Org URL (found in the upper right of the console home page) and `/oauth2/default`. For example, `https://dev-1234.oktapreview.com/oauth2/default`.
+- **Issuer** - This is the URL of the authorization server that will perform authentication. All Developer Accounts have a "default" authorization server. The issuer is a combination of your Org URL (found in the upper right of the console home page) and `/oauth2/default`. For example, `https://dev-1234.oktapreview.com/oauth2/default`.
 - **Client ID**- These can be found on the "General" tab of the Web application that you created earlier in the Okta Developer Console.
 
 #### Access Token Validation
+
 ```go
 import "github.com/okta/okta-jwt-verifier-golang"
 
@@ -43,6 +44,7 @@ token, err := verifier.VerifyAccessToken("{JWT}")
 ```
 
 #### Id Token Validation
+
 ```go
 import "github.com/okta/okta-jwt-verifier-golang"
 
@@ -69,7 +71,8 @@ sub := token.Claims["sub"]
 ```
 
 #### Dealing with clock skew
-We default to a two minute clock skew adjustment in our validation.  If you need to change this, you can use the `SetLeeway` method:
+
+We default to a two minute clock skew adjustment in our validation. If you need to change this, you can use the `SetLeeway` method:
 
 ```go
 jwtVerifierSetup := JwtVerifier{
@@ -88,7 +91,7 @@ expiry and 10 minute purge setting that is used to store resources fetched over
 HTTP. It also defines a `Cacher` interface with a `Get` method allowing
 customization of that caching. If you want to establish your own caching
 strategy then provide your own `Cacher` object that implements that interface.
-Your custom cache is set in the verifier via the `Cache` attribute.  See the
+Your custom cache is set in the verifier via the `Cache` attribute. See the
 example in the [cache example test](utils/cache_example_test.go) that shows a
 "forever" cache (that one would never use in production ...)
 
@@ -99,6 +102,38 @@ jwtVerifierSetup := jwtverifier.JwtVerifier{
 }
 
 verifier := jwtVerifierSetup.New()
+```
+
+#### Utilities
+
+The below utilities are available in this package that can be used for Authentication flows
+
+**Nonce Generator**
+
+```go
+import jwtUtils "github.com/okta/okta-jwt-verifier-golang/utils"
+
+nonce, err := jwtUtils.GenerateNonce()
+```
+
+**PKCE Code Verifier and Challenge Generator**
+
+```go
+import jwtUtils "github.com/okta/okta-jwt-verifier-golang/utils"
+
+codeVerifier, err := jwtUtils.GenerateCodeVerifier()
+// or
+codeVerifier, err := jwtUtils.GenerateCodeVerifierWithLength(50)
+
+// get string value for oauth2 code verifier
+codeVerifierValue := codeVerifier.String()
+
+// get plain text code challenge from verifier
+codeChallengePlain := codeVerifier.CodeChallengePlain()
+codeChallengeMethod := "plain"
+// get sha256 code challenge from verifier
+codeChallengeS256 := codeVerifier.CodeChallengeS256()
+codeChallengeMethod := "S256"
 ```
 
 ## Testing
@@ -120,4 +155,3 @@ with Implicit (hybrid) enabled.
 ```
 go test -test.v
 ```
-
