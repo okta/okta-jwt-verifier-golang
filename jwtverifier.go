@@ -65,6 +65,11 @@ func fetchMetaData(url string) (interface{}, error) {
 	}
 	defer resp.Body.Close()
 
+	ok := resp.StatusCode >= 200 && resp.StatusCode < 300
+	if !ok {
+		return nil, fmt.Errorf("request for metadata %q was not HTTP 2xx OK, it was: %d", url, resp.StatusCode)
+	}
+
 	metadata := make(map[string]interface{})
 	if err := json.NewDecoder(resp.Body).Decode(&metadata); err != nil {
 		return nil, err
