@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.1 (April 6th, 2022)
+
+### Updates:
+
+* Correctly error if metadata from issuer is not 200. [#85](https://github.com/okta/okta-jwt-verifier-golang/pull/85). Thanks, [@monde](https://github.com/monde)!
+
 ## v1.3.0 (March 17th, 2022)
 
 ### Enhancements:
@@ -18,7 +24,6 @@
 
 * Customizable resource cache. Thanks, [@tschaub](https://github.com/tschaub)!
 
-
 ## v1.1.3
 
 ### Updates
@@ -32,4 +37,3 @@
 ### Updates
 
 - Only `alg` and `kid` claims in a JWT header are considered during verification.
-

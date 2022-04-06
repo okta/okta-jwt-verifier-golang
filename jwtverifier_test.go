@@ -29,6 +29,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jarcoal/httpmock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/okta/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/utils"
@@ -454,4 +457,23 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	if issuer == nil {
 		t.Errorf("issuer claim could not be pulled from access_token")
 	}
+}
+
+func TestWhenFetchMetaDataHas404(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	errJson := `{"errorCode":"E0000022","errorSummary":"The endpoint does not support the provided HTTP method","errorLink":"E0000022","errorId":"oaebpimEDg8TSuQwXXT-wjzwA","errorCauses":[]}`
+	responder := httpmock.NewStringResponder(404, errJson)
+	issuer := `https://example.com/.well-known/openid-configuration`
+	httpmock.RegisterResponder("GET", issuer, responder)
+
+	jvs := JwtVerifier{
+		Issuer: "https://example.com",
+	}
+	jv := jvs.New()
+	token := `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im15b3JnIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ORhY_syF7eW3e4-h2Lt0i2-7yWSr3GFu4XdHtsNQTquvnrVLN2VhM6gDhoaVtZutuVpDQD-Srd6haKtQTEffrUl2IM6erWVPKNlG_ljdm2hDQ4cw58hs9CJkTkPte4RAtFwsq-zLebdk_eF__rMYqwfgkgKK_13FoG0u8nEVtSoK_2gYBPrdFONC08Uwwre_iUz1MTHugWNcITT3u866UHeNHnRARAIn5L-rKMiEH6sQyhDoGqLyfL5xpn6d1xkxtEgqvoj7F-L4Cw87i4Jzmxl8Eo3xseBe0EGU0s-zMOzqWWVBrcG_pxA9IakgNPHGiRmoQk_rc3796FuwAkYZOA`
+	_, err := jv.VerifyIdToken(token)
+
+	require.ErrorContains(t, err, "request for metadata \"https://example.com/.well-known/openid-configuration\" was not HTTP 2xx OK, it was: 404")
 }
