@@ -42,6 +42,13 @@ func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
 		lgj.Cache = utils.NewDefaultCache
 	}
 
+	var err error
+	lgj.jwkSetCache, err = lgj.Cache(fetchJwkSet)
+	if err != nil {
+		// maybe panic(err)
+		lgj.jwkSetCache = nil
+	}
+
 	return lgj
 }
 

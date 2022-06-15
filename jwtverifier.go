@@ -97,6 +97,13 @@ func (j *JwtVerifier) New() *JwtVerifier {
 	// Default to PT2M Leeway
 	j.leeway = 120
 
+	var err error
+	j.metadataCache, err = j.Cache(fetchMetaData)
+	if err != nil {
+		// maybe panic(err)
+		j.metadataCache = nil
+	}
+
 	return j
 }
 
