@@ -268,7 +268,7 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 		switch v := clientId.(type) {
 		case string:
 			if v != cid {
-				return fmt.Errorf("aud: %s does not match %s", v, cid)
+				return fmt.Errorf("cid: %s does not match %s", v, cid)
 			}
 		case []string:
 			for _, element := range v {
@@ -276,7 +276,7 @@ func (j *JwtVerifier) validateClientId(clientId interface{}) error {
 					return nil
 				}
 			}
-			return fmt.Errorf("aud: %s does not match %s", v, cid)
+			return fmt.Errorf("cid: %s does not match %s", v, cid)
 		default:
 			return fmt.Errorf("unknown type for clientId validation")
 		}
