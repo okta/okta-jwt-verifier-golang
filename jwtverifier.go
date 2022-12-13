@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -47,11 +48,13 @@ type JwtVerifier struct {
 	Adaptor adaptors.Adaptor
 
 	// Cache allows customization of the cache used to store resources
-	Cache func(func(string) (interface{}, error)) (utils.Cacher, error)
+	Cache func(func(string) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
 
 	metadataCache utils.Cacher
 
-	leeway int64
+	leeway  int64
+	Timeout time.Duration
+	Cleanup time.Duration
 }
 
 type Jwt struct {
@@ -78,10 +81,19 @@ func fetchMetaData(url string) (interface{}, error) {
 }
 
 func (j *JwtVerifier) New() *JwtVerifier {
+	log.Println("here")
 	// Default to OIDC discovery if none is defined
 	if j.Discovery == nil {
 		disc := oidc.Oidc{}
 		j.Discovery = disc.New()
+	}
+
+	if j.Timeout == 0 {
+		j.Timeout = 5 * time.Minute
+	}
+
+	if j.Cleanup == 0 {
+		j.Cleanup = 10 * time.Minute
 	}
 
 	if j.Cache == nil {
@@ -90,7 +102,7 @@ func (j *JwtVerifier) New() *JwtVerifier {
 
 	// Default to LestrratGoJwx Adaptor if none is defined
 	if j.Adaptor == nil {
-		adaptor := &lestrratGoJwx.LestrratGoJwx{Cache: j.Cache}
+		adaptor := &lestrratGoJwx.LestrratGoJwx{Cache: j.Cache, Timeout: j.Timeout, Cleanup: j.Cleanup}
 		j.Adaptor = adaptor.New()
 	}
 
@@ -103,6 +115,14 @@ func (j *JwtVerifier) New() *JwtVerifier {
 func (j *JwtVerifier) SetLeeway(duration string) {
 	dur, _ := time.ParseDuration(duration)
 	j.leeway = int64(dur.Seconds())
+}
+
+func (j *JwtVerifier) SetTimeOut(duration time.Duration) {
+	j.Timeout = duration
+}
+
+func (j *JwtVerifier) SetCleanUp(duration time.Duration) {
+	j.Cleanup = duration
 }
 
 func (j *JwtVerifier) VerifyAccessToken(jwt string) (*Jwt, error) {
@@ -317,7 +337,7 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
 	if j.metadataCache == nil {
-		metadataCache, err := j.Cache(fetchMetaData)
+		metadataCache, err := j.Cache(fetchMetaData, j.Timeout, j.Cleanup)
 		if err != nil {
 			return nil, err
 		}

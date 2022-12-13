@@ -2,6 +2,7 @@ package utils_test
 
 import (
 	"fmt"
+	"time"
 
 	jwtverifier "github.com/okta/okta-jwt-verifier-golang"
 	"github.com/okta/okta-jwt-verifier-golang/utils"
@@ -31,7 +32,7 @@ func (c *ForeverCache) Get(key string) (interface{}, error) {
 var _ utils.Cacher = (*ForeverCache)(nil)
 
 // NewForeverCache takes a lookup function and returns a cache
-func NewForeverCache(lookup func(string) (interface{}, error)) (utils.Cacher, error) {
+func NewForeverCache(lookup func(string) (interface{}, error), t, c time.Duration) (utils.Cacher, error) {
 	return &ForeverCache{
 		values: map[string]interface{}{},
 		lookup: lookup,
