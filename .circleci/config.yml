@@ -43,9 +43,6 @@ jobs:
 workflows:
   "Circle CI Tests":
     jobs:
-      - build
-      - test:
-          requires:
-            - build
+      - test
 
 # VS Code Extension Version: 1.4.0
