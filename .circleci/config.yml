@@ -43,6 +43,12 @@ jobs:
 workflows:
   "Circle CI Tests":
     jobs:
-      - test
+      - cache-secrets
+      - load-secrets:
+          requires:
+            - cache-secrets
+      - test:
+          requires:
+            - load-secrets
 
 # VS Code Extension Version: 1.4.0
