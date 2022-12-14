@@ -23,14 +23,14 @@ jobs:
 
   load-secrets:
     docker:
-      - image: cimg/go:1.19.4
+      - image: cimg/openjdk:11.0
     steps:
       - checkout
       - general-platform-helpers/load-dependencies
 
   test:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/go:1.19.4
     steps:
       - checkout
       - run: go version
