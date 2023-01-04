@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
@@ -33,8 +34,10 @@ func fetchJwkSet(jwkUri string) (interface{}, error) {
 
 type LestrratGoJwx struct {
 	JWKSet      jwk.Set
-	Cache       func(func(string) (interface{}, error)) (utils.Cacher, error)
+	Cache       func(func(string) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
 	jwkSetCache utils.Cacher
+	Timeout     time.Duration
+	Cleanup     time.Duration
 }
 
 func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
@@ -50,7 +53,7 @@ func (lgj *LestrratGoJwx) GetKey(jwkUri string) {
 
 func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
 	if lgj.jwkSetCache == nil {
-		jwkSetCache, err := lgj.Cache(fetchJwkSet)
+		jwkSetCache, err := lgj.Cache(fetchJwkSet, lgj.Timeout, lgj.Cleanup)
 		if err != nil {
 			return nil, err
 		}

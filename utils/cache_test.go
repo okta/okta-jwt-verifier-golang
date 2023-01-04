@@ -2,6 +2,7 @@ package utils_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/okta/okta-jwt-verifier-golang/utils"
 )
@@ -14,8 +15,7 @@ func TestNewDefaultCache(t *testing.T) {
 	lookup := func(key string) (interface{}, error) {
 		return &Value{key: key}, nil
 	}
-
-	cache, err := utils.NewDefaultCache(lookup)
+	cache, err := utils.NewDefaultCache(lookup, 5*time.Minute, 10*time.Minute)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
