@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.0 (January 4th, 2023)
+## v2.0.0 (January 4th, 2023)
 
 ### Enhancements:
 
