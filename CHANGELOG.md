@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0 (January 4th, 2023)
+
+### Enhancements:
+
+* Customizable cache timeout and change to the cache method. [#92](https://github.com/okta/okta-jwt-verifier-golang/pull/92)
+
 ## v1.3.1 (April 6th, 2022)
 
 ### Updates:

@@ -44,7 +44,6 @@ func (c *defaultCache) Get(key string) (interface{}, error) {
 // defaultCache implements the Cacher interface
 var _ Cacher = (*defaultCache)(nil)
 
-// NewDefaultCache returns cache with a 5 minute expiration.
 func NewDefaultCache(lookup func(string) (interface{}, error), timeout, cleanup time.Duration) (Cacher, error) {
 	return &defaultCache{
 		cache:  cache.New(timeout, cleanup),

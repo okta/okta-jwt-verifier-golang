@@ -20,7 +20,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -81,7 +80,6 @@ func fetchMetaData(url string) (interface{}, error) {
 }
 
 func (j *JwtVerifier) New() *JwtVerifier {
-	log.Println("here")
 	// Default to OIDC discovery if none is defined
 	if j.Discovery == nil {
 		disc := oidc.Oidc{}
