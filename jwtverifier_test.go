@@ -330,7 +330,7 @@ func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T)
 }
 
 func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
-	// utils.ParseEnvironment()
+	utils.ParseEnvironment()
 
 	if os.Getenv("ISSUER") == "" || os.Getenv("CLIENT_ID") == "" {
 		log.Printf("Skipping integration tests")
