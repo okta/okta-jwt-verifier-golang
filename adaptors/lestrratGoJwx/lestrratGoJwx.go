@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
@@ -28,8 +29,8 @@ import (
 	"github.com/okta/okta-jwt-verifier-golang/utils"
 )
 
-func fetchJwkSet(jwkUri string) (interface{}, error) {
-	return jwk.Fetch(context.Background(), jwkUri)
+func (lgj *LestrratGoJwx) fetchJwkSet(jwkUri string) (interface{}, error) {
+	return jwk.Fetch(context.Background(), jwkUri, jwk.WithHTTPClient(lgj.Client))
 }
 
 type LestrratGoJwx struct {
@@ -38,6 +39,7 @@ type LestrratGoJwx struct {
 	jwkSetCache utils.Cacher
 	Timeout     time.Duration
 	Cleanup     time.Duration
+	Client      *http.Client
 }
 
 func (lgj *LestrratGoJwx) New() adaptors.Adaptor {
@@ -53,7 +55,7 @@ func (lgj *LestrratGoJwx) GetKey(jwkUri string) {
 
 func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
 	if lgj.jwkSetCache == nil {
-		jwkSetCache, err := lgj.Cache(fetchJwkSet, lgj.Timeout, lgj.Cleanup)
+		jwkSetCache, err := lgj.Cache(lgj.fetchJwkSet, lgj.Timeout, lgj.Cleanup)
 		if err != nil {
 			return nil, err
 		}
