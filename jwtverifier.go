@@ -46,6 +46,8 @@ type JwtVerifier struct {
 
 	Adaptor adaptors.Adaptor
 
+	Client *http.Client
+
 	// Cache allows customization of the cache used to store resources
 	Cache func(func(string) (interface{}, error), time.Duration, time.Duration) (utils.Cacher, error)
 
@@ -60,8 +62,8 @@ type Jwt struct {
 	Claims map[string]interface{}
 }
 
-func fetchMetaData(url string) (interface{}, error) {
-	resp, err := http.Get(url)
+func (j *JwtVerifier) fetchMetaData(url string) (interface{}, error) {
+	resp, err := j.Client.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("request for metadata was not successful: %w", err)
 	}
@@ -94,13 +96,17 @@ func (j *JwtVerifier) New() *JwtVerifier {
 		j.Cleanup = 10 * time.Minute
 	}
 
+	if j.Client == nil {
+		j.Client = http.DefaultClient
+	}
+
 	if j.Cache == nil {
 		j.Cache = utils.NewDefaultCache
 	}
 
 	// Default to LestrratGoJwx Adaptor if none is defined
 	if j.Adaptor == nil {
-		adaptor := &lestrratGoJwx.LestrratGoJwx{Cache: j.Cache, Timeout: j.Timeout, Cleanup: j.Cleanup}
+		adaptor := &lestrratGoJwx.LestrratGoJwx{Cache: j.Cache, Timeout: j.Timeout, Cleanup: j.Cleanup, Client: j.Client}
 		j.Adaptor = adaptor.New()
 	}
 
@@ -335,7 +341,7 @@ func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
 	if j.metadataCache == nil {
-		metadataCache, err := j.Cache(fetchMetaData, j.Timeout, j.Cleanup)
+		metadataCache, err := j.Cache(j.fetchMetaData, j.Timeout, j.Cleanup)
 		if err != nil {
 			return nil, err
 		}
