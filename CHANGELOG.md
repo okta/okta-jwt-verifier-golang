@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.0.1 (May 15th, 2023)
+
+### Enhancements:
+
+* Customizable HTTP client [#99](https://github.com/okta/okta-jwt-verifier-golang/pull/99)
+
+### Updates:
+
+* Project maintenance for CI [#95](https://github.com/okta/okta-jwt-verifier-golang/pull/95)
+* Correct logging typo [#91](https://github.com/okta/okta-jwt-verifier-golang/pull/91)
+* Replace `math/rand` with `crypto/rand` [#89](https://github.com/okta/okta-jwt-verifier-golang/pull/89)
+
 ## v2.0.0 (January 4th, 2023)
 
 ### Enhancements:
