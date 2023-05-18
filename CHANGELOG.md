@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.2 (May 18th, 2023)
+
+### Updates:
+
+* Correct okta-jwt-verifier-golang version reference to v2  [#101](https://github.com/okta/okta-jwt-verifier-golang/pull/101)
+
 ## v2.0.1 (May 15th, 2023)
 
 ### Enhancements:

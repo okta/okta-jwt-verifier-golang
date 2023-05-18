@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/okta/okta-jwt-verifier-golang/utils"
+	"github.com/okta/okta-jwt-verifier-golang/v2/utils"
 )
 
 type Value struct {

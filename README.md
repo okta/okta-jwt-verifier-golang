@@ -27,7 +27,7 @@ This library was built to keep configuration to a minimum. To get it running at 
 #### Access Token Validation
 
 ```go
-import "github.com/okta/okta-jwt-verifier-golang"
+import "github.com/okta/okta-jwt-verifier-golang/v2"
 
 toValidate := map[string]string{}
 toValidate["aud"] = "api://default"
@@ -46,7 +46,7 @@ token, err := verifier.VerifyAccessToken("{JWT}")
 #### Id Token Validation
 
 ```go
-import "github.com/okta/okta-jwt-verifier-golang"
+import "github.com/okta/okta-jwt-verifier-golang/v2"
 
 toValidate := map[string]string{}
 toValidate["nonce"] = "{NONCE}"
@@ -112,7 +112,7 @@ The below utilities are available in this package that can be used for Authentic
 **Nonce Generator**
 
 ```go
-import jwtUtils "github.com/okta/okta-jwt-verifier-golang/utils"
+import jwtUtils "github.com/okta/okta-jwt-verifier-golang/v2/utils"
 
 nonce, err := jwtUtils.GenerateNonce()
 ```
@@ -120,7 +120,7 @@ nonce, err := jwtUtils.GenerateNonce()
 **PKCE Code Verifier and Challenge Generator**
 
 ```go
-import jwtUtils "github.com/okta/okta-jwt-verifier-golang/utils"
+import jwtUtils "github.com/okta/okta-jwt-verifier-golang/v2/utils"
 
 codeVerifier, err := jwtUtils.GenerateCodeVerifier()
 // or

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	jwtverifier "github.com/okta/okta-jwt-verifier-golang"
-	"github.com/okta/okta-jwt-verifier-golang/utils"
+	jwtverifier "github.com/okta/okta-jwt-verifier-golang/v2"
+	"github.com/okta/okta-jwt-verifier-golang/v2/utils"
 )
 
 // ForeverCache caches values forever
