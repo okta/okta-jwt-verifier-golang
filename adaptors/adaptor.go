@@ -17,7 +17,7 @@
 package adaptors
 
 type Adaptor interface {
-	New() Adaptor
+	New() (Adaptor, error)
 	GetKey(jwkUri string)
 	Decode(jwt string, jwkUri string) (interface{}, error)
 }
