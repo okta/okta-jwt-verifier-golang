@@ -54,18 +54,7 @@ func (lgj *LestrratGoJwx) New() (adaptors.Adaptor, error) {
 	return lgj, nil
 }
 
-func (lgj *LestrratGoJwx) GetKey(jwkUri string) {
-}
-
 func (lgj *LestrratGoJwx) Decode(jwt string, jwkUri string) (interface{}, error) {
-	if lgj.jwkSetCache == nil {
-		jwkSetCache, err := lgj.Cache(lgj.fetchJwkSet, lgj.Timeout, lgj.Cleanup)
-		if err != nil {
-			return nil, err
-		}
-		lgj.jwkSetCache = jwkSetCache
-	}
-
 	value, err := lgj.jwkSetCache.Get(jwkUri)
 	if err != nil {
 		return nil, err

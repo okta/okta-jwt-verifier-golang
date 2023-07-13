@@ -349,14 +349,6 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
 
-	if j.metadataCache == nil {
-		metadataCache, err := j.Cache(j.fetchMetaData, j.Timeout, j.Cleanup)
-		if err != nil {
-			return nil, err
-		}
-		j.metadataCache = metadataCache
-	}
-
 	value, err := j.metadataCache.Get(metaDataUrl)
 	if err != nil {
 		return nil, err
