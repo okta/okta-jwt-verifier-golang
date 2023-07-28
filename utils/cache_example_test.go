@@ -46,6 +46,6 @@ func Example() {
 		// other fields here
 	}
 
-	verifier := jwtVerifierSetup.New()
+	verifier, _ := jwtVerifierSetup.New()
 	fmt.Println(verifier)
 }

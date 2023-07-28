@@ -19,7 +19,8 @@ package jwtverifier
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,11 +31,10 @@ import (
 	"time"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/stretchr/testify/require"
-
 	"github.com/okta/okta-jwt-verifier-golang/v2/adaptors/lestrratGoJwx"
 	"github.com/okta/okta-jwt-verifier-golang/v2/discovery/oidc"
 	"github.com/okta/okta-jwt-verifier-golang/v2/utils"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *testing.T) {
@@ -42,7 +42,7 @@ func Test_the_verifier_defaults_to_oidc_if_nothing_is_provided_for_discovery(t *
 		Issuer: "issuer",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	if reflect.TypeOf(jv.GetDiscovery()) != reflect.TypeOf(oidc.Oidc{}) {
 		t.Errorf("discovery did not set to oidc by default.  Was set to: %s",
@@ -55,7 +55,7 @@ func Test_the_verifier_defaults_to_lestrratGoJwx_if_nothing_is_provided_for_adap
 		Issuer: "issuer",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	if reflect.TypeOf(jv.GetAdaptor()) != reflect.TypeOf(&lestrratGoJwx.LestrratGoJwx{}) {
 		t.Errorf("adaptor did not set to lestrratGoJwx by default.  Was set to: %s",
@@ -68,7 +68,7 @@ func Test_can_validate_iss_from_issuer_provided(t *testing.T) {
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	err := jv.validateIss("test")
 	if err == nil {
@@ -85,7 +85,7 @@ func Test_can_validate_nonce(t *testing.T) {
 		ClaimsToValidate: tv,
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	err := jv.validateNonce("test")
 	if err == nil {
@@ -102,7 +102,7 @@ func Test_can_validate_aud(t *testing.T) {
 		ClaimsToValidate: tv,
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	err := jv.validateAudience("test")
 	if err == nil {
@@ -119,7 +119,7 @@ func Test_can_validate_cid(t *testing.T) {
 		ClaimsToValidate: tv,
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	err := jv.validateClientId("test")
 	if err == nil {
@@ -132,7 +132,7 @@ func Test_can_validate_iat(t *testing.T) {
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	// token issued in future triggers error
 	err := jv.validateIat(float64(time.Now().Unix() + 300))
@@ -152,7 +152,7 @@ func Test_can_validate_exp(t *testing.T) {
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	// expired token triggers error
 	err := jv.validateExp(float64(time.Now().Unix() - 300))
@@ -173,7 +173,7 @@ func Test_invalid_formatting_of_id_token_throws_an_error(t *testing.T) {
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyIdToken("aa")
 
@@ -191,7 +191,7 @@ func Test_an_id_token_header_that_is_improperly_formatted_throws_an_error(t *tes
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyIdToken("123456789.aa.aa")
 
@@ -205,7 +205,7 @@ func Test_an_id_token_header_that_is_not_decoded_into_json_throws_an_error(t *te
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyIdToken("aa.aa.aa")
 
@@ -219,7 +219,7 @@ func Test_an_id_token_header_that_is_not_contain_the_correct_parts_throws_an_err
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
 
@@ -239,7 +239,7 @@ func Test_an_id_token_header_that_is_not_rs256_throws_an_error(t *testing.T) {
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyIdToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbGciOiAiSFMyNTYiDQp9.aa.aa")
 
@@ -254,7 +254,7 @@ func Test_invalid_formatting_of_access_token_throws_an_error(t *testing.T) {
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyAccessToken("aa")
 
@@ -272,7 +272,7 @@ func Test_an_access_token_header_that_is_improperly_formatted_throws_an_error(t 
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyAccessToken("123456789.aa.aa")
 
@@ -286,7 +286,7 @@ func Test_an_access_token_header_that_is_not_decoded_into_json_throws_an_error(t
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyAccessToken("aa.aa.aa")
 
@@ -300,7 +300,7 @@ func Test_an_access_token_header_that_is_not_contain_the_correct_parts_throws_an
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyAccessToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbmQiOiAidGhpcyINCn0.aa.aa")
 
@@ -320,7 +320,7 @@ func Test_an_access_token_header_that_is_not_rs256_throws_an_error(t *testing.T)
 		Issuer: "https://golang.oktapreview.com",
 	}
 
-	jv := jvs.New()
+	jv, _ := jvs.New()
 
 	_, err := jv.VerifyAccessToken("ew0KICAia2lkIjogImFiYzEyMyIsDQogICJhbGciOiAiSFMyNTYiDQp9.aa.aa")
 
@@ -357,10 +357,11 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 		t.Errorf("could not submit authentication endpoint")
 	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, resp.Body)
 
 	var authn AuthnResponse
-	err = json.Unmarshal(body, &authn)
+	err = json.Unmarshal(buf.Bytes(), &authn)
 	if err != nil {
 		t.Errorf("could not unmarshal authn response")
 	}
@@ -407,7 +408,12 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 		ClaimsToValidate: tv,
 	}
 
-	claims, err := jv.New().VerifyIdToken(idToken)
+	jwtv1, err := jv.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	claims, err := jwtv1.VerifyIdToken(idToken)
 	if err != nil {
 		t.Errorf("could not verify id_token: %s", err.Error())
 	}
@@ -426,7 +432,11 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 		ClaimsToValidate: tv,
 	}
 
-	claims, err = jv.New().VerifyAccessToken(accessToken)
+	jwtv2, err := jv.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+	claims, err = jwtv2.VerifyAccessToken(accessToken)
 
 	if err != nil {
 		t.Errorf("could not verify access_token: %s", err.Error())
@@ -442,11 +452,15 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	tv = map[string]string{}
 	tv["aud"] = "api://default"
 	jv = JwtVerifier{
-		Issuer:           os.Getenv("ISSUER"),
+		Issuer:           "https://golang-sdk-oie.oktapreview.com/oauth2/default",
 		ClaimsToValidate: tv,
 	}
 
-	claims, err = jv.New().VerifyAccessToken(accessToken)
+	jwtv3, err := jv.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+	claims, err = jwtv3.VerifyAccessToken(accessToken)
 
 	if err != nil {
 		t.Errorf("could not verify access_token: %s", err.Error())
@@ -471,9 +485,125 @@ func TestWhenFetchMetaDataHas404(t *testing.T) {
 	jvs := JwtVerifier{
 		Issuer: "https://example.com",
 	}
-	jv := jvs.New()
+	jv, _ := jvs.New()
 	token := `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im15b3JnIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ORhY_syF7eW3e4-h2Lt0i2-7yWSr3GFu4XdHtsNQTquvnrVLN2VhM6gDhoaVtZutuVpDQD-Srd6haKtQTEffrUl2IM6erWVPKNlG_ljdm2hDQ4cw58hs9CJkTkPte4RAtFwsq-zLebdk_eF__rMYqwfgkgKK_13FoG0u8nEVtSoK_2gYBPrdFONC08Uwwre_iUz1MTHugWNcITT3u866UHeNHnRARAIn5L-rKMiEH6sQyhDoGqLyfL5xpn6d1xkxtEgqvoj7F-L4Cw87i4Jzmxl8Eo3xseBe0EGU0s-zMOzqWWVBrcG_pxA9IakgNPHGiRmoQk_rc3796FuwAkYZOA`
 	_, err := jv.VerifyIdToken(token)
 
 	require.ErrorContains(t, err, "request for metadata \"https://example.com/.well-known/openid-configuration\" was not HTTP 2xx OK, it was: 404")
+}
+
+func validate(verifier *JwtVerifier, token string) {
+	_, err := verifier.VerifyAccessToken(token)
+	if err != nil {
+		log.Printf("token not valid: %v", err)
+	} else {
+		log.Println("valid")
+	}
+}
+
+func TestRaceCondition(t *testing.T) {
+	t.Skip("Run locally to test for race condition")
+	type AuthnResponse struct {
+		SessionToken string `json:"sessionToken"`
+	}
+
+	nonce, err := utils.GenerateNonce()
+	if err != nil {
+		t.Errorf("could not generate nonce")
+	}
+
+	// Get Session Token
+	issuerParts, _ := url.Parse(os.Getenv("ISSUER"))
+	baseUrl := issuerParts.Scheme + "://" + issuerParts.Hostname()
+	requestUri := baseUrl + "/api/v1/authn"
+	postValues := map[string]string{"username": os.Getenv("USERNAME"), "password": os.Getenv("PASSWORD")}
+	postJsonValues, _ := json.Marshal(postValues)
+	resp, err := http.Post(requestUri, "application/json", bytes.NewReader(postJsonValues))
+	if err != nil {
+		t.Errorf("could not submit authentication endpoint")
+	}
+	defer resp.Body.Close()
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, resp.Body)
+
+	var authn AuthnResponse
+	err = json.Unmarshal(buf.Bytes(), &authn)
+	if err != nil {
+		t.Errorf("could not unmarshal authn response")
+	}
+
+	// Issue get request with session token to get id/access tokens
+	authzUri := os.Getenv("ISSUER") + "/v1/authorize?client_id=" + os.Getenv(
+		"CLIENT_ID") + "&nonce=" + nonce + "&redirect_uri=http://localhost:8080/implicit/callback" +
+		"&response_type=token%20id_token&scope=openid&state" +
+		"=ApplicationState&sessionToken=" + authn.SessionToken
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, with []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err = client.Get(authzUri)
+
+	if err != nil {
+		t.Errorf("could not submit authorization endpoint: %s", err.Error())
+	}
+
+	defer resp.Body.Close()
+	location := resp.Header.Get("Location")
+	locParts, _ := url.Parse(location)
+	fragmentParts, _ := url.ParseQuery(locParts.Fragment)
+
+	if fragmentParts["access_token"] == nil {
+		t.Errorf("could not extract access_token")
+	}
+
+	if fragmentParts["id_token"] == nil {
+		t.Errorf("could not extract id_token")
+	}
+
+	accessToken := fragmentParts["access_token"][0]
+	idToken := fragmentParts["id_token"][0]
+
+	tv := map[string]string{}
+	tv["aud"] = os.Getenv("CLIENT_ID")
+	tv["nonce"] = nonce
+	jv := JwtVerifier{
+		Issuer:           os.Getenv("ISSUER"),
+		ClaimsToValidate: tv,
+	}
+
+	jwtv1, err := jv.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	claims, err := jwtv1.VerifyIdToken(idToken)
+	if err != nil {
+		t.Errorf("could not verify id_token: %s", err.Error())
+	}
+
+	issuer := claims.Claims["iss"]
+
+	if issuer == nil {
+		t.Errorf("issuer claim could not be pulled from access_token")
+	}
+
+	tv = map[string]string{}
+	tv["aud"] = "api://default"
+	tv["cid"] = os.Getenv("CLIENT_ID")
+	jv = JwtVerifier{
+		Issuer:           os.Getenv("ISSUER"),
+		ClaimsToValidate: tv,
+	}
+
+	verifier, err := jv.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	go validate(verifier, accessToken)
+	validate(verifier, accessToken)
+	time.Sleep(2 * time.Second)
 }

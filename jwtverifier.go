@@ -81,7 +81,7 @@ func (j *JwtVerifier) fetchMetaData(url string) (interface{}, error) {
 	return metadata, nil
 }
 
-func (j *JwtVerifier) New() *JwtVerifier {
+func (j *JwtVerifier) New() (*JwtVerifier, error) {
 	// Default to OIDC discovery if none is defined
 	if j.Discovery == nil {
 		disc := oidc.Oidc{}
@@ -107,13 +107,22 @@ func (j *JwtVerifier) New() *JwtVerifier {
 	// Default to LestrratGoJwx Adaptor if none is defined
 	if j.Adaptor == nil {
 		adaptor := &lestrratGoJwx.LestrratGoJwx{Cache: j.Cache, Timeout: j.Timeout, Cleanup: j.Cleanup, Client: j.Client}
-		j.Adaptor = adaptor.New()
+		adp, err := adaptor.New()
+		if err != nil {
+			return nil, err
+		}
+		j.Adaptor = adp
 	}
 
 	// Default to PT2M Leeway
 	j.leeway = 120
-
-	return j
+	var err error
+	metadataCache, err := j.Cache(j.fetchMetaData, j.Timeout, j.Cleanup)
+	if err != nil {
+		return nil, err
+	}
+	j.metadataCache = metadataCache
+	return j, nil
 }
 
 func (j *JwtVerifier) SetLeeway(duration string) {
@@ -339,14 +348,6 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 
 func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
 	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
-
-	if j.metadataCache == nil {
-		metadataCache, err := j.Cache(j.fetchMetaData, j.Timeout, j.Cleanup)
-		if err != nil {
-			return nil, err
-		}
-		j.metadataCache = metadataCache
-	}
 
 	value, err := j.metadataCache.Get(metaDataUrl)
 	if err != nil {
