@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.3 (July 28th, 2023)
+
+### Updates:
+
+* Fixing the race condition [#102](https://github.com/okta/okta-jwt-verifier-golang/pull/102)
+
 ## v2.0.2 (May 18th, 2023)
 
 ### Updates:
