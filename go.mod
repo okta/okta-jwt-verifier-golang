@@ -5,7 +5,6 @@ go 1.22.1
 require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/lestrrat-go/jwx v1.2.29
-	github.com/okta/okta-jwt-verifier-golang/v2 v2.0.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.9.0
 )
