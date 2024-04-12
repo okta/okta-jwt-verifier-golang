@@ -25,12 +25,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/okta/okta-jwt-verifier-golang/v2/adaptors"
-	"github.com/okta/okta-jwt-verifier-golang/v2/adaptors/lestrratGoJwx"
-	"github.com/okta/okta-jwt-verifier-golang/v2/discovery"
-	"github.com/okta/okta-jwt-verifier-golang/v2/discovery/oidc"
-	"github.com/okta/okta-jwt-verifier-golang/v2/errors"
-	"github.com/okta/okta-jwt-verifier-golang/v2/utils"
+	"github.com/lgcypower/okta-jwt-verifier-golang/adaptors"
+	"github.com/lgcypower/okta-jwt-verifier-golang/adaptors/lestrratGoJwx"
+	"github.com/lgcypower/okta-jwt-verifier-golang/discovery"
+	"github.com/lgcypower/okta-jwt-verifier-golang/discovery/oidc"
+	"github.com/lgcypower/okta-jwt-verifier-golang/errors"
+	"github.com/lgcypower/okta-jwt-verifier-golang/utils"
 )
 
 var (
