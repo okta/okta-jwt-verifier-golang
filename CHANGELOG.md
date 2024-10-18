@@ -6,6 +6,13 @@
 
 Make Audience validation optional [#116](https://github.com/okta/okta-jwt-verifier-golang/pull/116)
 
+## v2.0.5 (September 3rd, 2024)
+
+### Updates:
+
+Make audience optional [#117](https://github.com/okta/okta-jwt-verifier-golang/pull/117)
+Update jwx library [#114](https://github.com/okta/okta-jwt-verifier-golang/pull/114)
+
 ## v2.0.4 (February 26th, 2024)
 
 ### Updates:
