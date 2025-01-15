@@ -19,7 +19,7 @@ go get -u github.com/okta/okta-jwt-verifier-golang
 
 ## Usage
 
-This library was built to keep configuration to a minimum. To get it running at its most basic form, all you need to provide is the the following information:
+This library was built to keep configuration to a minimum. To get it running at its most basic form, all you need to provide is the following information:
 
 - **Issuer** - This is the URL of the authorization server that will perform authentication. All Developer Accounts have a "default" authorization server. The issuer is a combination of your Org URL (found in the upper right of the console home page) and `/oauth2/default`. For example, `https://dev-1234.oktapreview.com/oauth2/default`.
 - **Client ID**- These can be found on the "General" tab of the Web application that you created earlier in the Okta Developer Console.
