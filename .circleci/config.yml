@@ -24,7 +24,7 @@ jobs:
     docker:
       - image: cimg/go:1.21.13
     steps:
-      - checkout 
+      - checkout
       - run:
           name: Install Python
           command: |
@@ -51,7 +51,7 @@ jobs:
           name: Build binary to scan
           command: |
             go mod vendor
-            go build 
+            go build
       - run:
           name: Run Reversing Labs Wrapper Scanner
           command: |
@@ -70,10 +70,18 @@ workflows:
   "Circle CI Tests":
     jobs:
       - test
+
+  semgrep:
+    jobs:
+      - platform-orb/job-semgrep-scan:
+          name: "Scan with Semgrep"
+          resource-class: "medium"
+          context:
+            - static-analysis
+
   "Malware Scanner":
     jobs:
       - reversing-labs:
           context:
             - static-analysis
-
 # VS Code Extension Version: 1.4.0
