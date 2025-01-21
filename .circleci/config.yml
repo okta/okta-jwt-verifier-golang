@@ -3,7 +3,7 @@
 version: 2.1
 
 orbs:
-  general-platform-helpers: okta/general-platform-helpers@1.9
+  general-platform-helpers: okta/general-platform-helpers@1.9.4
   python: circleci/python@2.0.3
   aws-cli: circleci/aws-cli@5.1
 
@@ -20,6 +20,18 @@ jobs:
       - run:
           name: "test stage"
           command: make test
+
+  snyk-scan:
+    docker:
+      - image: cimg/go:1.19.4
+    steps:
+      - checkout
+      - general-platform-helpers/step-load-dependencies
+      - general-platform-helpers/step-run-snyk-monitor:
+          scan-all-projects: false
+          skip-unresolved: false
+          run-on-non-main: true
+
   reversing-labs:
     docker:
       - image: cimg/go:1.21.13
@@ -70,10 +82,14 @@ workflows:
   "Circle CI Tests":
     jobs:
       - test
+      - snyk-scan:
+          name: execute-snyk
+          context:
+            - static-analysis
 
   semgrep:
     jobs:
-      - platform-orb/job-semgrep-scan:
+      - general-platform-helpers/job-semgrep-scan:
           name: "Scan with Semgrep"
           resource-class: "medium"
           context:
