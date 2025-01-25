@@ -21,16 +21,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/okta/okta-jwt-verifier-golang/v2/adaptors"
-	"github.com/okta/okta-jwt-verifier-golang/v2/adaptors/lestrratGoJwx"
-	"github.com/okta/okta-jwt-verifier-golang/v2/discovery"
-	"github.com/okta/okta-jwt-verifier-golang/v2/discovery/oidc"
-	"github.com/okta/okta-jwt-verifier-golang/v2/errors"
-	"github.com/okta/okta-jwt-verifier-golang/v2/utils"
+	"github.com/shubangmck/okta-jwt-verifier-golang/v2/adaptors"
+	"github.com/shubangmck/okta-jwt-verifier-golang/v2/adaptors/lestrratGoJwx"
+	"github.com/shubangmck/okta-jwt-verifier-golang/v2/discovery"
+	"github.com/shubangmck/okta-jwt-verifier-golang/v2/discovery/oidc"
+	"github.com/shubangmck/okta-jwt-verifier-golang/v2/errors"
+	"github.com/shubangmck/okta-jwt-verifier-golang/v2/utils"
 )
 
 var (
@@ -352,7 +353,11 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 }
 
 func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
-	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
+
+	metaDataUrl, err := url.JoinPath(j.Issuer, j.Discovery.GetWellKnownUrl())
+	if err != nil {
+		return nil, fmt.Errorf("unable to create metadata URL:%s", err.Error())
+	}
 
 	value, err := j.metadataCache.Get(metaDataUrl)
 	if err != nil {
