@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.1.1 (June 27th, 2025)
+
+### Updates:
+
+* Update jwx library [#120](https://github.com/okta/okta-jwt-verifier-golang/pull/129)
+* Update CI configuration [#121](https://github.com/okta/okta-jwt-verifier-golang/pull/130)
+
 ## v2.1.0 (September 5th, 2024)
 
 ### Updates:
