@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -352,7 +353,10 @@ func (j *JwtVerifier) validateIss(issuer interface{}) error {
 }
 
 func (j *JwtVerifier) getMetaData() (map[string]interface{}, error) {
-	metaDataUrl := j.Issuer + j.Discovery.GetWellKnownUrl()
+	metaDataUrl, err := url.JoinPath(j.Issuer, j.Discovery.GetWellKnownUrl())
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct metadata URL: %w", err)
+	}
 
 	value, err := j.metadataCache.Get(metaDataUrl)
 	if err != nil {

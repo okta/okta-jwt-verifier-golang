@@ -390,11 +390,11 @@ func Test_a_successful_authentication_can_have_its_tokens_parsed(t *testing.T) {
 	fragmentParts, _ := url.ParseQuery(locParts.Fragment)
 
 	if fragmentParts["access_token"] == nil {
-		t.Errorf("could not extract access_token")
+		t.Fatalf("could not extract access_token")
 	}
 
 	if fragmentParts["id_token"] == nil {
-		t.Errorf("could not extract id_token")
+		t.Fatalf("could not extract id_token")
 	}
 
 	accessToken := fragmentParts["access_token"][0]
@@ -492,6 +492,28 @@ func TestWhenFetchMetaDataHas404(t *testing.T) {
 	require.ErrorContains(t, err, "request for metadata \"https://example.com/.well-known/openid-configuration\" was not HTTP 2xx OK, it was: 404")
 }
 
+func TestIssuerWithTrailingSlashConstructsValidMetadataURL(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Register the correct URL (without double slashes)
+	metadataUrl := `https://example.com/.well-known/openid-configuration`
+	responder := httpmock.NewStringResponder(404, `{}`)
+	httpmock.RegisterResponder("GET", metadataUrl, responder)
+
+	// Issuer with trailing slash should NOT produce double slashes
+	jvs := JwtVerifier{
+		Issuer: "https://example.com/",
+	}
+	jv, _ := jvs.New()
+	token := `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im15b3JnIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ORhY_syF7eW3e4-h2Lt0i2-7yWSr3GFu4XdHtsNQTquvnrVLN2VhM6gDhoaVtZutuVpDQD-Srd6haKtQTEffrUl2IM6erWVPKNlG_ljdm2hDQ4cw58hs9CJkTkPte4RAtFwsq-zLebdk_eF__rMYqwfgkgKK_13FoG0u8nEVtSoK_2gYBPrdFONC08Uwwre_iUz1MTHugWNcITT3u866UHeNHnRARAIn5L-rKMiEH6sQyhDoGqLyfL5xpn6d1xkxtEgqvoj7F-L4Cw87i4Jzmxl8Eo3xseBe0EGU0s-zMOzqWWVBrcG_pxA9IakgNPHGiRmoQk_rc3796FuwAkYZOA`
+	_, err := jv.VerifyIdToken(token)
+
+	// The error should reference the correct URL (no double slashes)
+	// If the URL had double slashes, httpmock wouldn't match and we'd get a different error
+	require.ErrorContains(t, err, "request for metadata \"https://example.com/.well-known/openid-configuration\" was not HTTP 2xx OK")
+}
+
 func validate(verifier *JwtVerifier, token string) {
 	_, err := verifier.VerifyAccessToken(token)
 	if err != nil {
@@ -556,11 +578,11 @@ func TestRaceCondition(t *testing.T) {
 	fragmentParts, _ := url.ParseQuery(locParts.Fragment)
 
 	if fragmentParts["access_token"] == nil {
-		t.Errorf("could not extract access_token")
+		t.Fatalf("could not extract access_token")
 	}
 
 	if fragmentParts["id_token"] == nil {
-		t.Errorf("could not extract id_token")
+		t.Fatalf("could not extract id_token")
 	}
 
 	accessToken := fragmentParts["access_token"][0]
