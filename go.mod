@@ -1,6 +1,6 @@
 module github.com/okta/okta-jwt-verifier-golang/v2
 
-go 1.19
+go 1.25.0
 
 require (
 	github.com/jarcoal/httpmock v1.1.0
@@ -20,7 +20,7 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
